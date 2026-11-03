@@ -2,40 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Park It - Dashboard</title>
+    <title>Park-It Management</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f7f6; }
-        h1 { color: #333; }
-        button { padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        ul { margin-top: 20px; padding: 0; list-style: none; }
-        li { background: white; padding: 12px; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .form-group { margin-bottom: 10px; }
+        button { padding: 5px 10px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <h1>Park It - Live Parking Zones</h1>
-    <button onclick="loadZones()">Refresh Parking Data</button>
-    <ul id="zone-list"></ul>
+    <h1>Park-It System</h1>
 
-    <script>
-        async function loadZones() {
-            try {
-                const response = await fetch('http://localhost:3000/api/zones');
-                const zones = await response.json();
-                const list = document.getElementById('zone-list');
-                list.innerHTML = '';
+    <!-- CREATE: Form to add a new zone -->
+    <h2>Add New Parking Zone</h2>
+    <form id="add-zone-form">
+        <div class="form-group">
+            <input type="text" id="zoneName" placeholder="Zone Name (e.g., North Lot)" required>
+            <input type="number" id="maxCapacity" placeholder="Max Capacity" required>
+            <button type="submit">Create Zone</button>
+        </div>
+    </form>
 
-                zones.forEach(zone => {
-                    const li = document.createElement('li');
-                    li.textContent = `${zone.zone_name} — Capacity: ${zone.current_active_count} / ${zone.max_capacity} occupied`;
-                    list.appendChild(li);
-                });
-            } catch (err) {
-                console.error('Failed to load zones:', err);
-            }
-        }
-        // Load automatically when page opens
-        loadZones();
-    </script>
+    <!-- RETRIEVE: Table to show database records -->
+    <h2>Current Zones</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Zone Name</th>
+                <th>Capacity</th>
+                <th>Occupied</th>
+                <th>Actions (Update / Delete)</th>
+            </tr>
+        </thead>
+        <tbody id="zones-table-body">
+            <!-- Data will be injected here by app.js -->
+        </tbody>
+    </table>
+
+    <script src="app.js"></script>
 </body>
 </html>

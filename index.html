@@ -1,32 +1,103 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Park-It Management</title>
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        .form-group { margin-bottom: 10px; }
-        button { padding: 5px 10px; cursor: pointer; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        input {
+            padding: 9px;
+            margin-right: 5px;
+        }
+
+        button {
+            padding: 7px 12px;
+            cursor: pointer;
+            margin: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .update-btn {
+            color: blue;
+        }
+
+        .delete-btn {
+            color: red;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
+
     <h1>Park-It System</h1>
 
-    <!-- CREATE: Form to add a new zone -->
+  
     <h2>Add New Parking Zone</h2>
+
     <form id="add-zone-form">
         <div class="form-group">
-            <input type="text" id="zoneName" placeholder="Zone Name (e.g., North Lot)" required>
-            <input type="number" id="maxCapacity" placeholder="Max Capacity" required>
+
+            <input
+                type="text"
+                id="zoneName"
+                placeholder="Zone Name"
+                required
+            >
+
+            <input
+                type="number"
+                id="maxCapacity"
+                placeholder="Max Capacity"
+                min="1"
+                step="1"
+                required
+            >
+
             <button type="submit">Create Zone</button>
+
         </div>
     </form>
 
-    <!-- RETRIEVE: Table to show database records -->
+    <p id="message" role="status"></p>
+
+
     <h2>Current Zones</h2>
+
     <table>
         <thead>
             <tr>
@@ -34,14 +105,15 @@
                 <th>Zone Name</th>
                 <th>Capacity</th>
                 <th>Occupied</th>
-                <th>Actions (Update / Delete)</th>
+                <th>Actions</th>
             </tr>
         </thead>
+
         <tbody id="zones-table-body">
-            <!-- Data will be injected here by app.js -->
         </tbody>
     </table>
 
     <script src="app.js"></script>
+
 </body>
 </html>

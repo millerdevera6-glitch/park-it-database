@@ -1,1 +1,0 @@
-INSERT INTO parking_zone (zone_name, max_capacity, current_active_count) VALUES ('Zone A', 50, 0);

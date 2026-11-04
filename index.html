@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Park-It | Parking Management</title>
+    <title>Park-It | Parking Management System</title>
 
     <style>
         * {
@@ -15,98 +15,197 @@
 
         body {
             font-family: Arial, sans-serif;
-            background: #f3f6fb;
-            color: #1e293b;
+            background: #061a3d;
+            color: #ffffff;
         }
 
         /* HEADER */
         header {
-            background: #14243d;
-            color: white;
-            padding: 20px 40px;
+            background: linear-gradient(120deg, #06132e, #0b3475);
+            padding: 20px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid #1765d1;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
         }
 
         .logo-icon {
-            background: #2563eb;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 22px;
+            background: linear-gradient(135deg, #1685ff, #0344b9);
+            padding: 12px 17px;
+            border-radius: 12px;
+            font-size: 30px;
+            font-weight: bold;
+            box-shadow: 0 0 15px #1678ff80;
         }
 
         .logo h2 {
-            font-size: 22px;
+            font-size: 27px;
+            letter-spacing: 1px;
         }
 
         .logo p {
+            color: #a9c9f5;
             font-size: 12px;
-            color: #aabbd3;
             margin-top: 4px;
         }
 
         .admin {
-            color: #dbeafe;
-            font-size: 14px;
+            background: #102e5c;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            border: 1px solid #2765b7;
         }
 
-        /* MAIN CONTENT */
+        /* MAIN CONTAINER */
         .container {
-            max-width: 1200px;
-            margin: 35px auto;
-            padding: 0 25px;
+            max-width: 1450px;
+            margin: auto;
+            padding: 35px 5%;
         }
 
-        .welcome {
+        /* HERO SECTION */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 220px;
+            margin-bottom: 30px;
+            gap: 20px;
+            background:
+                radial-gradient(ellipse at 75% 50%, #1352a8 0%, transparent 55%),
+                linear-gradient(110deg, #071b40, #0a2e68);
+            border-radius: 18px;
+            padding: 30px 40px;
+            overflow: hidden;
+            border: 1px solid #174d93;
+        }
+
+        .hero-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-text h1 {
+            font-size: clamp(28px, 4vw, 46px);
+            margin-bottom: 12px;
+        }
+
+        .hero-text h1 span {
+            color: #3194ff;
+        }
+
+        .hero-text p {
+            color: #c2d8f8;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .hero-line {
+            width: 90px;
+            height: 5px;
+            background: #2189ff;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        /* BLUE CAR ILLUSTRATION */
+        .car-image {
+            width: 42%;
+            max-width: 440px;
+            min-width: 230px;
+            filter: drop-shadow(0 12px 18px #0009);
+        }
+
+        .car-image svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* DASHBOARD SUMMARY */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
             margin-bottom: 30px;
         }
 
-        .welcome h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
+        .stat-card {
+            background: linear-gradient(135deg, #102e61, #071d42);
+            border: 1px solid #1765bd;
+            border-radius: 15px;
+            padding: 23px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 5px 15px #0003;
         }
 
-        .welcome p {
-            color: #64748b;
-            font-size: 14px;
+        .stat-icon {
+            width: 65px;
+            height: 65px;
+            min-width: 65px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #168aff, #0343bc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 29px;
         }
 
-        /* SECTION CARDS */
+        .stat-info p {
+            color: #b5cbed;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .stat-info h2 {
+            font-size: 30px;
+        }
+
+        /* GENERAL WHITE CARDS */
         .card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #102344;
+            border-radius: 15px;
             margin-bottom: 25px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+            overflow: hidden;
+            box-shadow: 0 6px 20px #0003;
         }
 
-        .section-title {
-            margin-bottom: 20px;
+        .card-header {
+            background: linear-gradient(100deg, #e5efff, #ffffff);
+            padding: 20px 25px;
+            border-bottom: 1px solid #dbe7f8;
         }
 
-        .section-title h2 {
-            font-size: 19px;
+        .card-header h2 {
+            font-size: 21px;
+            color: #102b57;
             margin-bottom: 6px;
         }
 
-        .section-title p {
+        .card-header p {
             color: #64748b;
             font-size: 13px;
         }
 
-        /* FORM */
+        /* ADD ZONE FORM */
+        .form-content {
+            padding: 25px;
+        }
+
         .form-group {
             display: flex;
             align-items: end;
-            gap: 15px;
+            gap: 20px;
             flex-wrap: wrap;
         }
 
@@ -117,60 +216,80 @@
 
         .input-group label {
             display: block;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 9px;
         }
 
         input {
             width: 100%;
-            padding: 12px;
+            padding: 13px;
             border: 1px solid #cbd5e1;
-            border-radius: 7px;
+            border-radius: 8px;
             font-size: 14px;
             outline: none;
-        }
-
-        input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-        }
-
-        button {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 13px 20px;
-            border-radius: 7px;
-            font-weight: bold;
-            cursor: pointer;
             transition: 0.2s;
         }
 
-        button:hover {
-            background: #1d4ed8;
+        input:focus {
+            border-color: #1677ed;
+            box-shadow: 0 0 0 3px #1677ed20;
         }
 
-        /* MESSAGE */
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .create-btn {
+            background: linear-gradient(135deg, #168aff, #0643b9);
+            color: white;
+            padding: 14px 25px;
+            font-size: 14px;
+            min-height: 44px;
+        }
+
+        .create-btn:hover {
+            background: #0344a8;
+            transform: translateY(-2px);
+        }
+
         #message {
             margin-top: 15px;
             font-size: 14px;
             font-weight: bold;
         }
 
-        /* TABLE */
+        /* PARKING TABLE */
+        .table-content {
+            padding: 20px 25px 25px;
+        }
+
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             gap: 10px;
         }
 
+        .table-header h2 {
+            font-size: 21px;
+        }
+
+        .table-header p {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
         .zone-label {
-            background: #eff6ff;
-            color: #2563eb;
-            padding: 7px 12px;
+            background: #e5f0ff;
+            color: #1260c3;
+            padding: 9px 15px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: bold;
@@ -183,15 +302,14 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px;
+            min-width: 650px;
         }
 
         th {
-            background: #f8fafc;
-            color: #64748b;
-            font-size: 12px;
+            background: #dceaff;
+            color: #12356a;
+            font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         th, td {
@@ -205,41 +323,65 @@
         }
 
         tbody tr:hover {
-            background: #f8fafc;
+            background: #f1f6ff;
         }
 
         .update-btn {
-            background: #eff6ff;
-            color: #2563eb;
-            padding: 8px 12px;
+            background: #1269df;
+            color: white;
+            padding: 9px 15px;
+            margin: 2px;
         }
 
         .update-btn:hover {
-            background: #dbeafe;
+            background: #084da9;
         }
 
         .delete-btn {
-            background: #fef2f2;
-            color: #dc2626;
-            padding: 8px 12px;
+            background: #e52d38;
+            color: white;
+            padding: 9px 15px;
+            margin: 2px;
         }
 
         .delete-btn:hover {
-            background: #fee2e2;
+            background: #bb1825;
         }
 
         /* FOOTER */
         footer {
-            text-align: center;
-            padding: 25px;
-            color: #94a3b8;
-            font-size: 12px;
+            background: #04132d;
+            border-top: 2px solid #1765bd;
+            padding: 25px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #a9c9f5;
+            font-size: 13px;
         }
 
-        /* RESPONSIVE */
+        footer span {
+            color: #318dff;
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero {
+                padding: 25px;
+            }
+        }
+
         @media (max-width: 600px) {
             header {
                 padding: 18px;
+            }
+
+            .logo h2 {
+                font-size: 21px;
             }
 
             .admin {
@@ -247,12 +389,22 @@
             }
 
             .container {
-                margin: 25px auto;
-                padding: 0 15px;
+                padding: 20px 15px;
             }
 
-            .welcome h1 {
-                font-size: 23px;
+            .hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .car-image {
+                width: 100%;
+                max-width: 350px;
+                align-self: center;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
             }
 
             .form-group {
@@ -264,12 +416,25 @@
                 width: 100%;
             }
 
-            .form-group button {
+            .create-btn {
                 width: 100%;
             }
 
-            .card {
+            .card-header,
+            .form-content,
+            .table-content {
                 padding: 18px;
+            }
+
+            .table-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            footer {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
             }
         }
     </style>
@@ -280,7 +445,8 @@
     <!-- HEADER -->
     <header>
         <div class="logo">
-            <div class="logo-icon">🅿</div>
+            <div class="logo-icon">P</div>
+
             <div>
                 <h2>Park-It</h2>
                 <p>Parking Management System</p>
@@ -288,98 +454,297 @@
         </div>
 
         <div class="admin">
-            Administrator Dashboard
+            👤 Administrator
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
     <main class="container">
 
-        <div class="welcome">
-            <h1>Parking Dashboard</h1>
-            <p>Manage your parking zones and monitor parking capacity.</p>
-        </div>
+        <!-- HERO SECTION -->
+        <section class="hero">
+
+            <div class="hero-text">
+                <h1>Parking <span>Dashboard</span></h1>
+
+                <p>
+                    Manage your parking zones and monitor
+                    parking capacity with ease.
+                </p>
+
+                <div class="hero-line"></div>
+            </div>
+
+            <!-- BLUE CAR SVG -->
+            <div class="car-image">
+                <svg viewBox="0 0 500 230"
+                     xmlns="http://www.w3.org/2000/svg">
+
+                    <defs>
+                        <linearGradient id="carBlue" x1="0" y1="0"
+                                        x2="0" y2="1">
+                            <stop offset="0%" stop-color="#55b5ff"/>
+                            <stop offset="40%" stop-color="#0878ed"/>
+                            <stop offset="100%" stop-color="#003b9e"/>
+                        </linearGradient>
+
+                        <linearGradient id="glass" x1="0" y1="0"
+                                        x2="1" y2="1">
+                            <stop offset="0%" stop-color="#a9e1ff"/>
+                            <stop offset="45%" stop-color="#164a82"/>
+                            <stop offset="100%" stop-color="#061a39"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- SHADOW -->
+                    <ellipse cx="250" cy="196" rx="205" ry="17"
+                             fill="#000000" opacity=".5"/>
+
+                    <!-- CAR BODY -->
+                    <path d="M48 148
+                             L66 110
+                             Q75 92 112 87
+                             L164 47
+                             Q183 30 220 30
+                             L316 30
+                             Q348 30 375 59
+                             L426 111
+                             Q453 119 462 148
+                             L455 174
+                             L42 174 Z"
+                          fill="url(#carBlue)"
+                          stroke="#70c6ff"
+                          stroke-width="3"/>
+
+                    <!-- WINDOWS -->
+                    <path d="M115 88
+                             L174 46
+                             Q185 38 211 38
+                             L244 38
+                             L244 91 Z"
+                          fill="url(#glass)"
+                          stroke="#80cfff"
+                          stroke-width="2"/>
+
+                    <path d="M255 38
+                             L312 38
+                             Q337 38 359 62
+                             L385 91
+                             L255 91 Z"
+                          fill="url(#glass)"
+                          stroke="#80cfff"
+                          stroke-width="2"/>
+
+                    <!-- WINDOW DIVIDER -->
+                    <path d="M249 37 L249 94"
+                          stroke="#b4e4ff"
+                          stroke-width="5"/>
+
+                    <!-- SIDE DETAILS -->
+                    <path d="M65 125 L435 125"
+                          stroke="#91d7ff"
+                          stroke-width="2"
+                          opacity=".6"/>
+
+                    <path d="M255 102 L255 151"
+                          stroke="#00449d"
+                          stroke-width="3"/>
+
+                    <!-- DOOR HANDLES -->
+                    <rect x="290" y="111" width="30" height="5"
+                          rx="2" fill="#b7e5ff"/>
+
+                    <rect x="180" y="111" width="30" height="5"
+                          rx="2" fill="#b7e5ff"/>
+
+                    <!-- FRONT HEADLIGHT -->
+                    <path d="M416 119 L453 133 L449 149 L413 141 Z"
+                          fill="#d9f5ff"
+                          stroke="#ffffff"
+                          stroke-width="2"/>
+
+                    <path d="M420 132 L448 140"
+                          stroke="#168aff"
+                          stroke-width="4"/>
+
+                    <!-- REAR LIGHT -->
+                    <path d="M48 124 L74 119 L69 146 L43 145 Z"
+                          fill="#ff3c55"/>
+
+                    <!-- FRONT GRILLE -->
+                    <path d="M430 154 L460 154 L454 173
+                             L425 173 Z"
+                          fill="#071a32"
+                          stroke="#7acbff"
+                          stroke-width="2"/>
+
+                    <!-- WHEELS -->
+                    <circle cx="132" cy="172" r="34"
+                            fill="#09182d" stroke="#6b7891"
+                            stroke-width="5"/>
+
+                    <circle cx="132" cy="172" r="21"
+                            fill="#9bb3cc"/>
+
+                    <circle cx="132" cy="172" r="12"
+                            fill="#263c5c"/>
+
+                    <circle cx="369" cy="172" r="34"
+                            fill="#09182d" stroke="#6b7891"
+                            stroke-width="5"/>
+
+                    <circle cx="369" cy="172" r="21"
+                            fill="#9bb3cc"/>
+
+                    <circle cx="369" cy="172" r="12"
+                            fill="#263c5c"/>
+
+                    <!-- WHEEL SPOKES -->
+                    <g stroke="#e0f2ff" stroke-width="3">
+                        <path d="M132 153 V191 M113 172 H151
+                                 M119 159 L145 185 M145 159 L119 185"/>
+                        <path d="M369 153 V191 M350 172 H388
+                                 M356 159 L382 185 M382 159 L356 185"/>
+                    </g>
+
+                </svg>
+            </div>
+
+        </section>
+
+        <!-- DASHBOARD SUMMARY -->
+        <section class="stats">
+
+            <div class="stat-card">
+                <div class="stat-icon">🚗</div>
+                <div class="stat-info">
+                    <p>Total Zones</p>
+                    <h2 id="total-zones">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🅿️</div>
+                <div class="stat-info">
+                    <p>Total Capacity</p>
+                    <h2 id="total-capacity">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🚘</div>
+                <div class="stat-info">
+                    <p>Currently Occupied</p>
+                    <h2 id="total-occupied">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">✓</div>
+                <div class="stat-info">
+                    <p>Available Spaces</p>
+                    <h2 id="available-spaces">0</h2>
+                </div>
+            </div>
+
+        </section>
 
         <!-- ADD PARKING ZONE -->
         <section class="card">
 
-            <div class="section-title">
-                <h2>+ Add New Parking Zone</h2>
+            <div class="card-header">
+                <h2>＋ Add New Parking Zone</h2>
                 <p>Create and configure a new parking area.</p>
             </div>
 
-            <form id="add-zone-form">
+            <div class="form-content">
 
-                <div class="form-group">
+                <form id="add-zone-form">
 
-                    <div class="input-group">
-                        <label for="zoneName">Zone Name</label>
-                        <input
-                            type="text"
-                            id="zoneName"
-                            placeholder="e.g. Ground Floor A"
-                            required
-                        >
+                    <div class="form-group">
+
+                        <div class="input-group">
+                            <label for="zoneName">
+                                📍 Zone Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="zoneName"
+                                placeholder="e.g. Ground Floor A"
+                                required
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label for="maxCapacity">
+                                Maximum Capacity
+                            </label>
+
+                            <input
+                                type="number"
+                                id="maxCapacity"
+                                placeholder="e.g. 50"
+                                min="1"
+                                step="1"
+                                required
+                            >
+                        </div>
+
+                        <button type="submit" class="create-btn">
+                            🚗 Create Zone
+                        </button>
+
                     </div>
 
-                    <div class="input-group">
-                        <label for="maxCapacity">Maximum Capacity</label>
-                        <input
-                            type="number"
-                            id="maxCapacity"
-                            placeholder="e.g. 50"
-                            min="1"
-                            step="1"
-                            required
-                        >
-                    </div>
+                </form>
 
-                    <button type="submit">
-                        Create Zone
-                    </button>
+                <p id="message" role="status"></p>
 
-                </div>
-
-            </form>
-
-            <p id="message" role="status"></p>
+            </div>
 
         </section>
 
         <!-- PARKING ZONES TABLE -->
         <section class="card">
 
-            <div class="table-header">
-
-                <div class="section-title" style="margin: 0;">
-                    <h2>Parking Zones</h2>
-                    <p>View and manage your existing parking areas.</p>
-                </div>
-
-                <span class="zone-label">
-                    Zone Management
-                </span>
-
+            <div class="card-header">
+                <h2>🚘 Parking Zones</h2>
+                <p>View and manage your existing parking areas.</p>
             </div>
 
-            <div class="table-wrapper">
+            <div class="table-content">
 
-                <table>
+                <div class="table-header">
+                    <div>
+                        <h2>Zone Management</h2>
+                        <p>Parking area records and occupancy information.</p>
+                    </div>
 
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Zone Name</th>
-                            <th>Capacity</th>
-                            <th>Occupied</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <span class="zone-label">
+                        PARKING OVERVIEW
+                    </span>
+                </div>
 
-                    <tbody id="zones-table-body">
-                    </tbody>
+                <div class="table-wrapper">
 
-                </table>
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Zone Name</th>
+                                <th>Capacity</th>
+                                <th>Occupied</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="zones-table-body">
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
@@ -387,8 +752,10 @@
 
     </main>
 
+    <!-- FOOTER -->
     <footer>
-        © 2026 Park-It Parking Management System
+        <p>© 2026 <span>Park-It</span> Parking Management System</p>
+        <p>Park Smart. Drive Easy. 🚗</p>
     </footer>
 
     <script src="app.js"></script>

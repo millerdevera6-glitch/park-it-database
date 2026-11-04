@@ -1,0 +1,764 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Park-It | Parking Management System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #061a3d;
+            color: #ffffff;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(120deg, #06132e, #0b3475);
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1765d1;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, #1685ff, #0344b9);
+            padding: 12px 17px;
+            border-radius: 12px;
+            font-size: 30px;
+            font-weight: bold;
+            box-shadow: 0 0 15px #1678ff80;
+        }
+
+        .logo h2 {
+            font-size: 27px;
+            letter-spacing: 1px;
+        }
+
+        .logo p {
+            color: #a9c9f5;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .admin {
+            background: #102e5c;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            border: 1px solid #2765b7;
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 1450px;
+            margin: auto;
+            padding: 35px 5%;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 220px;
+            margin-bottom: 30px;
+            gap: 20px;
+            background:
+                radial-gradient(ellipse at 75% 50%, #1352a8 0%, transparent 55%),
+                linear-gradient(110deg, #071b40, #0a2e68);
+            border-radius: 18px;
+            padding: 30px 40px;
+            overflow: hidden;
+            border: 1px solid #174d93;
+        }
+
+        .hero-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-text h1 {
+            font-size: clamp(28px, 4vw, 46px);
+            margin-bottom: 12px;
+        }
+
+        .hero-text h1 span {
+            color: #3194ff;
+        }
+
+        .hero-text p {
+            color: #c2d8f8;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .hero-line {
+            width: 90px;
+            height: 5px;
+            background: #2189ff;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        /* BLUE CAR ILLUSTRATION */
+        .car-image {
+            width: 42%;
+            max-width: 440px;
+            min-width: 230px;
+            filter: drop-shadow(0 12px 18px #0009);
+        }
+
+        .car-image svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* DASHBOARD SUMMARY */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #102e61, #071d42);
+            border: 1px solid #1765bd;
+            border-radius: 15px;
+            padding: 23px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 5px 15px #0003;
+        }
+
+        .stat-icon {
+            width: 65px;
+            height: 65px;
+            min-width: 65px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #168aff, #0343bc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 29px;
+        }
+
+        .stat-info p {
+            color: #b5cbed;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .stat-info h2 {
+            font-size: 30px;
+        }
+
+        /* GENERAL WHITE CARDS */
+        .card {
+            background: #ffffff;
+            color: #102344;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px #0003;
+        }
+
+        .card-header {
+            background: linear-gradient(100deg, #e5efff, #ffffff);
+            padding: 20px 25px;
+            border-bottom: 1px solid #dbe7f8;
+        }
+
+        .card-header h2 {
+            font-size: 21px;
+            color: #102b57;
+            margin-bottom: 6px;
+        }
+
+        .card-header p {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* ADD ZONE FORM */
+        .form-content {
+            padding: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: end;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 9px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            border-color: #1677ed;
+            box-shadow: 0 0 0 3px #1677ed20;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .create-btn {
+            background: linear-gradient(135deg, #168aff, #0643b9);
+            color: white;
+            padding: 14px 25px;
+            font-size: 14px;
+            min-height: 44px;
+        }
+
+        .create-btn:hover {
+            background: #0344a8;
+            transform: translateY(-2px);
+        }
+
+        #message {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* PARKING TABLE */
+        .table-content {
+            padding: 20px 25px 25px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            gap: 10px;
+        }
+
+        .table-header h2 {
+            font-size: 21px;
+        }
+
+        .table-header p {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .zone-label {
+            background: #e5f0ff;
+            color: #1260c3;
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th {
+            background: #dceaff;
+            color: #12356a;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f1f6ff;
+        }
+
+        .update-btn {
+            background: #1269df;
+            color: white;
+            padding: 9px 15px;
+            margin: 2px;
+        }
+
+        .update-btn:hover {
+            background: #084da9;
+        }
+
+        .delete-btn {
+            background: #e52d38;
+            color: white;
+            padding: 9px 15px;
+            margin: 2px;
+        }
+
+        .delete-btn:hover {
+            background: #bb1825;
+        }
+
+        /* FOOTER */
+        footer {
+            background: #04132d;
+            border-top: 2px solid #1765bd;
+            padding: 25px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #a9c9f5;
+            font-size: 13px;
+        }
+
+        footer span {
+            color: #318dff;
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 18px;
+            }
+
+            .logo h2 {
+                font-size: 21px;
+            }
+
+            .admin {
+                display: none;
+            }
+
+            .container {
+                padding: 20px 15px;
+            }
+
+            .hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .car-image {
+                width: 100%;
+                max-width: 350px;
+                align-self: center;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-group {
+                width: 100%;
+            }
+
+            .create-btn {
+                width: 100%;
+            }
+
+            .card-header,
+            .form-content,
+            .table-content {
+                padding: 18px;
+            }
+
+            .table-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            footer {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">P</div>
+
+            <div>
+                <h2>Park-It</h2>
+                <p>Parking Management System</p>
+            </div>
+        </div>
+
+        <div class="admin">
+            👤 Administrator
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- HERO SECTION -->
+        <section class="hero">
+
+            <div class="hero-text">
+                <h1>Parking <span>Dashboard</span></h1>
+
+                <p>
+                    Manage your parking zones and monitor
+                    parking capacity with ease.
+                </p>
+
+                <div class="hero-line"></div>
+            </div>
+
+            <!-- BLUE CAR SVG -->
+            <div class="car-image">
+                <svg viewBox="0 0 500 230"
+                     xmlns="http://www.w3.org/2000/svg">
+
+                    <defs>
+                        <linearGradient id="carBlue" x1="0" y1="0"
+                                        x2="0" y2="1">
+                            <stop offset="0%" stop-color="#55b5ff"/>
+                            <stop offset="40%" stop-color="#0878ed"/>
+                            <stop offset="100%" stop-color="#003b9e"/>
+                        </linearGradient>
+
+                        <linearGradient id="glass" x1="0" y1="0"
+                                        x2="1" y2="1">
+                            <stop offset="0%" stop-color="#a9e1ff"/>
+                            <stop offset="45%" stop-color="#164a82"/>
+                            <stop offset="100%" stop-color="#061a39"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- SHADOW -->
+                    <ellipse cx="250" cy="196" rx="205" ry="17"
+                             fill="#000000" opacity=".5"/>
+
+                    <!-- CAR BODY -->
+                    <path d="M48 148
+                             L66 110
+                             Q75 92 112 87
+                             L164 47
+                             Q183 30 220 30
+                             L316 30
+                             Q348 30 375 59
+                             L426 111
+                             Q453 119 462 148
+                             L455 174
+                             L42 174 Z"
+                          fill="url(#carBlue)"
+                          stroke="#70c6ff"
+                          stroke-width="3"/>
+
+                    <!-- WINDOWS -->
+                    <path d="M115 88
+                             L174 46
+                             Q185 38 211 38
+                             L244 38
+                             L244 91 Z"
+                          fill="url(#glass)"
+                          stroke="#80cfff"
+                          stroke-width="2"/>
+
+                    <path d="M255 38
+                             L312 38
+                             Q337 38 359 62
+                             L385 91
+                             L255 91 Z"
+                          fill="url(#glass)"
+                          stroke="#80cfff"
+                          stroke-width="2"/>
+
+                    <!-- WINDOW DIVIDER -->
+                    <path d="M249 37 L249 94"
+                          stroke="#b4e4ff"
+                          stroke-width="5"/>
+
+                    <!-- SIDE DETAILS -->
+                    <path d="M65 125 L435 125"
+                          stroke="#91d7ff"
+                          stroke-width="2"
+                          opacity=".6"/>
+
+                    <path d="M255 102 L255 151"
+                          stroke="#00449d"
+                          stroke-width="3"/>
+
+                    <!-- DOOR HANDLES -->
+                    <rect x="290" y="111" width="30" height="5"
+                          rx="2" fill="#b7e5ff"/>
+
+                    <rect x="180" y="111" width="30" height="5"
+                          rx="2" fill="#b7e5ff"/>
+
+                    <!-- FRONT HEADLIGHT -->
+                    <path d="M416 119 L453 133 L449 149 L413 141 Z"
+                          fill="#d9f5ff"
+                          stroke="#ffffff"
+                          stroke-width="2"/>
+
+                    <path d="M420 132 L448 140"
+                          stroke="#168aff"
+                          stroke-width="4"/>
+
+                    <!-- REAR LIGHT -->
+                    <path d="M48 124 L74 119 L69 146 L43 145 Z"
+                          fill="#ff3c55"/>
+
+                    <!-- FRONT GRILLE -->
+                    <path d="M430 154 L460 154 L454 173
+                             L425 173 Z"
+                          fill="#071a32"
+                          stroke="#7acbff"
+                          stroke-width="2"/>
+
+                    <!-- WHEELS -->
+                    <circle cx="132" cy="172" r="34"
+                            fill="#09182d" stroke="#6b7891"
+                            stroke-width="5"/>
+
+                    <circle cx="132" cy="172" r="21"
+                            fill="#9bb3cc"/>
+
+                    <circle cx="132" cy="172" r="12"
+                            fill="#263c5c"/>
+
+                    <circle cx="369" cy="172" r="34"
+                            fill="#09182d" stroke="#6b7891"
+                            stroke-width="5"/>
+
+                    <circle cx="369" cy="172" r="21"
+                            fill="#9bb3cc"/>
+
+                    <circle cx="369" cy="172" r="12"
+                            fill="#263c5c"/>
+
+                    <!-- WHEEL SPOKES -->
+                    <g stroke="#e0f2ff" stroke-width="3">
+                        <path d="M132 153 V191 M113 172 H151
+                                 M119 159 L145 185 M145 159 L119 185"/>
+                        <path d="M369 153 V191 M350 172 H388
+                                 M356 159 L382 185 M382 159 L356 185"/>
+                    </g>
+
+                </svg>
+            </div>
+
+        </section>
+
+        <!-- DASHBOARD SUMMARY -->
+        <section class="stats">
+
+            <div class="stat-card">
+                <div class="stat-icon">🚗</div>
+                <div class="stat-info">
+                    <p>Total Zones</p>
+                    <h2 id="total-zones">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🅿️</div>
+                <div class="stat-info">
+                    <p>Total Capacity</p>
+                    <h2 id="total-capacity">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🚘</div>
+                <div class="stat-info">
+                    <p>Currently Occupied</p>
+                    <h2 id="total-occupied">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">✓</div>
+                <div class="stat-info">
+                    <p>Available Spaces</p>
+                    <h2 id="available-spaces">0</h2>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ADD PARKING ZONE -->
+        <section class="card">
+
+            <div class="card-header">
+                <h2>＋ Add New Parking Zone</h2>
+                <p>Create and configure a new parking area.</p>
+            </div>
+
+            <div class="form-content">
+
+                <form id="add-zone-form">
+
+                    <div class="form-group">
+
+                        <div class="input-group">
+                            <label for="zoneName">
+                                📍 Zone Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="zoneName"
+                                placeholder="e.g. Ground Floor A"
+                                required
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label for="maxCapacity">
+                                Maximum Capacity
+                            </label>
+
+                            <input
+                                type="number"
+                                id="maxCapacity"
+                                placeholder="e.g. 50"
+                                min="1"
+                                step="1"
+                                required
+                            >
+                        </div>
+
+                        <button type="submit" class="create-btn">
+                            🚗 Create Zone
+                        </button>
+
+                    </div>
+
+                </form>
+
+                <p id="message" role="status"></p>
+
+            </div>
+
+        </section>
+
+        <!-- PARKING ZONES TABLE -->
+        <section class="card">
+
+            <div class="card-header">
+                <h2>🚘 Parking Zones</h2>
+                <p>View and manage your existing parking areas.</p>
+            </div>
+
+            <div class="table-content">
+
+                <div class="table-header">
+                    <div>
+                        <h2>Zone Management</h2>
+                        <p>Parking area records and occupancy information.</p>
+                    </div>
+
+                    <span class="zone-label">
+                        PARKING OVERVIEW
+                    </span>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Zone Name</th>
+                                <th>Capacity</th>
+                                <th>Occupied</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="zones-table-body">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>© 2026 <span>Park-It</span> Parking Management System</p>
+        <p>Park Smart. Drive Easy. 🚗</p>
+    </footer>
+
+    <script src="app.js"></script>
+
+</body>
+</html>

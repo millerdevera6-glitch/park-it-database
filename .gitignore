@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ### Build output ###
 target/
 !**/src/main/**/target/
@@ -50,3 +51,7 @@ desktop.ini
 
 ### Spring Initializr leftovers ###
 HELP.md
+=======
+node_modules
+.env
+>>>>>>> 51826a2bfd3cc618d5279dcd19c49cd906d92ae0

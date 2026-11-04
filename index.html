@@ -4,114 +4,392 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Park-It Management</title>
+    <title>Park-It | Parking Management</title>
 
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            background: #f3f6fb;
+            color: #1e293b;
         }
 
-        h1 {
+        /* HEADER */
+        header {
+            background: #14243d;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            background: #2563eb;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 22px;
+        }
+
+        .logo h2 {
+            font-size: 22px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            color: #aabbd3;
+            margin-top: 4px;
+        }
+
+        .admin {
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        /* MAIN CONTENT */
+        .container {
+            max-width: 1200px;
+            margin: 35px auto;
+            padding: 0 25px;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+        }
+
+        .welcome h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* SECTION CARDS */
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
             margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.03);
         }
 
+        .section-title {
+            margin-bottom: 20px;
+        }
+
+        .section-title h2 {
+            font-size: 19px;
+            margin-bottom: 6px;
+        }
+
+        .section-title p {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* FORM */
         .form-group {
-            margin-bottom: 10px;
+            display: flex;
+            align-items: end;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
 
         input {
-            padding: 9px;
-            margin-right: 5px;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
         }
 
         button {
-            padding: 7px 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 13px 20px;
+            border-radius: 7px;
+            font-weight: bold;
             cursor: pointer;
-            margin: 2px;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        /* MESSAGE */
+        #message {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* TABLE */
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .zone-label {
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
+            min-width: 600px;
         }
 
         th {
-            background-color: #f4f4f4;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
         }
 
         .update-btn {
-            color: blue;
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 8px 12px;
+        }
+
+        .update-btn:hover {
+            background: #dbeafe;
         }
 
         .delete-btn {
-            color: red;
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 8px 12px;
         }
 
-        #message {
-            margin-top: 15px;
-            font-weight: bold;
+        .delete-btn:hover {
+            background: #fee2e2;
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            header {
+                padding: 18px;
+            }
+
+            .admin {
+                display: none;
+            }
+
+            .container {
+                margin: 25px auto;
+                padding: 0 15px;
+            }
+
+            .welcome h1 {
+                font-size: 23px;
+            }
+
+            .form-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-group {
+                width: 100%;
+            }
+
+            .form-group button {
+                width: 100%;
+            }
+
+            .card {
+                padding: 18px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>Park-It System</h1>
-
-  
-    <h2>Add New Parking Zone</h2>
-
-    <form id="add-zone-form">
-        <div class="form-group">
-
-            <input
-                type="text"
-                id="zoneName"
-                placeholder="Zone Name"
-                required
-            >
-
-            <input
-                type="number"
-                id="maxCapacity"
-                placeholder="Max Capacity"
-                min="1"
-                step="1"
-                required
-            >
-
-            <button type="submit">Create Zone</button>
-
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">🅿</div>
+            <div>
+                <h2>Park-It</h2>
+                <p>Parking Management System</p>
+            </div>
         </div>
-    </form>
 
-    <p id="message" role="status"></p>
+        <div class="admin">
+            Administrator Dashboard
+        </div>
+    </header>
 
+    <!-- MAIN CONTENT -->
+    <main class="container">
 
-    <h2>Current Zones</h2>
+        <div class="welcome">
+            <h1>Parking Dashboard</h1>
+            <p>Manage your parking zones and monitor parking capacity.</p>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Zone Name</th>
-                <th>Capacity</th>
-                <th>Occupied</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+        <!-- ADD PARKING ZONE -->
+        <section class="card">
 
-        <tbody id="zones-table-body">
-        </tbody>
-    </table>
+            <div class="section-title">
+                <h2>+ Add New Parking Zone</h2>
+                <p>Create and configure a new parking area.</p>
+            </div>
+
+            <form id="add-zone-form">
+
+                <div class="form-group">
+
+                    <div class="input-group">
+                        <label for="zoneName">Zone Name</label>
+                        <input
+                            type="text"
+                            id="zoneName"
+                            placeholder="e.g. Ground Floor A"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="maxCapacity">Maximum Capacity</label>
+                        <input
+                            type="number"
+                            id="maxCapacity"
+                            placeholder="e.g. 50"
+                            min="1"
+                            step="1"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit">
+                        Create Zone
+                    </button>
+
+                </div>
+
+            </form>
+
+            <p id="message" role="status"></p>
+
+        </section>
+
+        <!-- PARKING ZONES TABLE -->
+        <section class="card">
+
+            <div class="table-header">
+
+                <div class="section-title" style="margin: 0;">
+                    <h2>Parking Zones</h2>
+                    <p>View and manage your existing parking areas.</p>
+                </div>
+
+                <span class="zone-label">
+                    Zone Management
+                </span>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Zone Name</th>
+                            <th>Capacity</th>
+                            <th>Occupied</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="zones-table-body">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        © 2026 Park-It Parking Management System
+    </footer>
 
     <script src="app.js"></script>
 

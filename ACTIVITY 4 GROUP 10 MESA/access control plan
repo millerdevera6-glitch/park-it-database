@@ -1,0 +1,37 @@
+# Access Control Plan
+## Restaurant Online Ordering and Table Reservation System
+
+### 1. Purpose
+The purpose of this access control plan is to protect the restaurant database by assigning appropriate permissions to different users.
+
+### 2. User Roles
+
+| Role | Description |
+|---|---|
+| Admin | Manages the database and has full access to system records. |
+| Staff | Handles customer orders and table reservations. |
+| Customer | Accesses menu information and submits orders and reservations. |
+
+### 3. Access Permissions
+
+| Database Operation | Admin | Staff | Customer |
+|---|---|---|---|
+| View Menu | Yes | Yes | Yes |
+| Manage Menu | Yes | No | No |
+| View Orders | Yes | Yes | No |
+| Update Orders | Yes | Yes | No |
+| Create Orders | Yes | Yes | Yes |
+| View Reservations | Yes | Yes | No |
+| Manage Reservations | Yes | Yes | No |
+| Create Reservations | Yes | Yes | Yes |
+| Delete Records | Yes | No | No |
+
+### 4. Security Measures
+- Apply role-based access control.
+- Give users only the permissions required for their responsibilities.
+- Restrict unauthorized database operations.
+- Protect database credentials.
+- Regularly review user permissions.
+
+### 5. Expected Result
+The implementation should prevent unauthorized database access and ensure that each role can only perform its assigned operations.

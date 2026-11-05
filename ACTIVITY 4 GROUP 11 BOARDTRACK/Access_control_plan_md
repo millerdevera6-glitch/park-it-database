@@ -1,0 +1,41 @@
+# BoardTrack Access Control Plan
+
+## 1. Purpose
+
+The purpose of this access control plan is to implement role-based access control (RBAC) in the BoardTrack system using PostgreSQL. It aims to protect business records and ensure that users can only perform actions allowed by their assigned roles.
+
+## 2. User Roles and Permissions
+
+| Role | Permissions |
+|---|---|
+| Administrator | Full access to create, read, update, and delete business records. |
+| Staff | Can create, read, and update records but cannot delete records. |
+| Tenant | Can only view their own lease, payments, and utility bills. |
+| Application Runtime | Uses a controlled database account to perform application operations. |
+
+## 3. Database Roles
+
+| PostgreSQL Role | Type | Purpose |
+|---|---|---|
+| boardtrack_owner | LOGIN | Owns database objects and performs migrations. |
+| boardtrack_admin_grp | NOLOGIN | Provides administrator-level database privileges. |
+| app_runtime_grp | NOLOGIN | Provides database privileges required by the application. |
+| app_readonly_grp | NOLOGIN | Provides read-only database access. |
+| boardtrack_app | LOGIN | Runtime account used by the Node.js application. |
+
+## 4. Security Measures
+
+- Apply the principle of least privilege.
+- Prevent staff from deleting business records.
+- Restrict tenant access to their own records through application filtering and database views where appropriate.
+- Do not use the database owner account for normal application operations.
+- Keep database passwords outside the source code repository.
+- Avoid granting unnecessary SUPERUSER or CREATEROLE privileges.
+
+## 5. Verification
+
+Database permissions will be checked using PostgreSQL privilege queries and test operations. The verification will confirm that the assigned roles receive only their intended permissions.
+
+## 6. Expected Result
+
+The implementation should provide an additional database security layer that supports the existing application permissions of BoardTrack.

@@ -1,0 +1,55 @@
+# Access Control Plan – HabalGo
+
+## 1. Project Overview
+
+HabalGo is a ride-booking management system that handles customer information, driver records, vehicle details, booking transactions, payment records, and customer feedback. This access control plan establishes database roles and permissions to protect the system's data from unauthorized access and modifications.
+
+## 2. Access Control Objectives
+
+- Restrict database access based on user responsibilities.
+- Protect customer, driver, booking, and payment information.
+- Prevent unauthorized modification or deletion of records.
+- Apply the Principle of Least Privilege.
+- Separate administrative, application, and auditing responsibilities.
+
+## 3. Database Roles and Permissions
+
+| Database Role | Responsibilities | Permissions |
+|---|---|---|
+| HabalGo Admin | Manages database records and maintains the database structure. | SELECT, INSERT, UPDATE, DELETE |
+| HabalGo Application | Handles normal system operations, including retrieving and submitting records. | SELECT, INSERT, UPDATE |
+| HabalGo Auditor | Reviews database records for monitoring and verification. | SELECT only |
+
+## 4. Access Control Matrix
+
+| Database Objects | Admin | Application | Auditor |
+|---|---|---|---|
+| Customer | Full Access | Read, Insert, Update | Read Only |
+| Driver | Full Access | Read, Insert, Update | Read Only |
+| Vehicle | Full Access | Read, Insert, Update | Read Only |
+| Driver_Vehicle | Full Access | Read, Insert, Update | Read Only |
+| Location | Full Access | Read, Insert, Update | Read Only |
+| Booking | Full Access | Read, Insert, Update | Read Only |
+| Payment | Full Access | Read, Insert, Update | Read Only |
+| Rating_Feedback | Full Access | Read, Insert, Update | Read Only |
+
+## 5. Security Policies
+
+1. Each database role must use a separate account and password.
+2. Only authorized administrators can manage database permissions.
+3. Application users must not have unrestricted database access.
+4. Auditors are restricted to viewing records and cannot modify or delete information.
+5. Database credentials must not be exposed in public repositories.
+6. Unnecessary privileges must not be granted to database accounts.
+
+## 6. Implementation
+
+The access control system is implemented using PostgreSQL roles and GRANT statements. Three database roles are created: HabalGo Admin, HabalGo Application, and HabalGo Auditor. Each role receives permissions according to its assigned responsibilities.
+
+## 7. Verification
+
+The assigned permissions are verified using PostgreSQL privilege-checking functions and the `information_schema.role_table_grants` view. The verification process checks whether each role can perform only its permitted database operations.
+
+## 8. Expected Outcome
+
+The access control implementation is expected to provide controlled database access, protect sensitive records, and reduce the risk of unauthorized data modification or deletion within the HabalGo system.</WritingBlock

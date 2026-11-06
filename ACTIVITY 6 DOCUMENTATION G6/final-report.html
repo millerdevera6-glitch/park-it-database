@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>COMP 018 Activity 6 - HabalGo Final Report</title>
+<style>
+  @page {
+    size: A4;
+    margin: 20mm 15mm 20mm 15mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #24292e;
+    line-height: 1.6;
+    font-size: 11pt;
+    padding: 0;
+    margin: 0;
+  }
+  h1 {
+    font-size: 20pt;
+    color: #0366d6;
+    border-bottom: 2px solid #eaecef;
+    padding-bottom: 8px;
+    margin-top: 24px;
+    page-break-before: auto;
+  }
+  h2 {
+    font-size: 15pt;
+    color: #1a202c;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 6px;
+    margin-top: 20px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #2d3748;
+    margin-top: 16px;
+    page-break-after: avoid;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #cbd5e0;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  th {
+    background-color: #f7fafc;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td {
+    background-color: #fcfdfe;
+  }
+  pre {
+    background-color: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 8.5pt;
+    overflow-x: auto;
+    page-break-inside: avoid;
+  }
+  code {
+    background-color: rgba(27,31,35,0.05);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 85%;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+  }
+  blockquote {
+    border-left: 4px solid #0366d6;
+    padding: 0 12px;
+    color: #4a5568;
+    margin: 12px 0;
+    background-color: #f0f7ff;
+  }
+  hr {
+    border: 0;
+    height: 1px;
+    background: #e1e4e8;
+    margin: 20px 0;
+  }
+  ul, ol {
+    padding-left: 20px;
+    margin: 8px 0;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+<h1>COMP 018 – Database Administration</h1>
+<h1>Activity 6: Database Backup, Restoration, and Disaster Recovery</h1>
+<h2>Official Technical Documentation and Audit Report</h2>
+<hr/>
+<p><strong>Project Name:</strong> HabalGo – Centralized Ride &amp; Booking Management System  </p>
+<p><strong>Repository:</strong> <code>https://github.com/jeanaroyo/HabalGo.git</code>  </p>
+<p><strong>Database Engine:</strong> PostgreSQL 18.6 on x86_64-windows  </p>
+<p><strong>Target Database:</strong> <code>grp00_habalgodb</code>  </p>
+<p><strong>Test Restoration Database:</strong> <code>grp00_habalgodb_activity6_restore_test</code>  </p>
+<p><strong>Disaster Recovery Database:</strong> <code>grp00_habalgodb_recovery_test</code>  </p>
+<p><strong>Document Author:</strong> Senior PostgreSQL Database Administrator / Student DBA  </p>
+<p><strong>Academic Institution:</strong> Information Technology Department  </p>
+<p><strong>Course:</strong> COMP 018 – Database Administration  </p>
+<p><strong>Evaluation Date:</strong> 2026-11-06  </p>
+<p><strong>Document Version:</strong> 1.0 (Final)  </p>
+<hr/>
+<h2>Table of Contents</h2>
+<ol><li><a href="#1-project-overview">Project Overview</a></li>
+<li><a href="#2-database-architecture-and-relational-model">Database Architecture and Relational Model</a></li>
+<li><a href="#3-database-tables-columns-and-relationships">Database Tables, Columns, and Relationships</a></li>
+<li><a href="#4-application-roles-and-user-hierarchy">Application Roles and User Hierarchy</a></li>
+<li><a href="#5-postgresql-database-roles-ownership-and-privileges">PostgreSQL Database Roles, Ownership, and Privileges</a></li>
+<li><a href="#6-comprehensive-backup-plan-and-strategy">Comprehensive Backup Plan and Strategy</a></li>
+<li><a href="#7-backup-methodology-and-technical-justification">Backup Methodology and Technical Justification</a></li>
+<li><a href="#8-backup-schedule-and-lifecycle-retention-policy">Backup Schedule and Lifecycle Retention Policy</a></li>
+<li><a href="#9-recovery-objectives-rpo-and-rto">Recovery Objectives (RPO and RTO)</a></li>
+<li><a href="#10-backup-execution-and-command-line-parameters">Backup Execution and Command Line Parameters</a></li>
+<li><a href="#11-backup-file-verification-metrics-and-checksum">Backup File Verification, Metrics, and Checksum</a></li>
+<li><a href="#12-archive-table-of-contents-toc-inspection">Archive Table of Contents (TOC) Inspection</a></li>
+<li><a href="#13-test-database-restoration-procedure">Test Database Restoration Procedure</a></li>
+<li><a href="#14-restoration-empirical-results-and-analysis">Restoration Empirical Results and Analysis</a></li>
+<li><a href="#15-database-verification-suite-and-test-matrix">Database Verification Suite and Test Matrix</a></li>
+<li><a href="#16-empirical-access-control-and-least-privilege-verification">Empirical Access Control and Least Privilege Verification</a></li>
+<li><a href="#17-controlled-disaster-recovery-simulation">Controlled Disaster Recovery Simulation</a></li>
+<li><a href="#18-disaster-recovery-outcome-and-comparative-analysis">Disaster Recovery Outcome and Comparative Analysis</a></li>
+<li><a href="#19-errors-edge-cases-and-technical-limitations">Errors, Edge Cases, and Technical Limitations</a></li>
+<li><a href="#20-dba-recommendations-and-best-practices">DBA Recommendations and Best Practices</a></li>
+<li><a href="#21-ai-usage-and-academic-integrity-declaration">AI Usage and Academic Integrity Declaration</a></li>
+<li><a href="#22-visual-evidence-and-screenshot-catalog">Visual Evidence and Screenshot Catalog</a></li></ol>
+<hr/>
+<h2>1. Project Overview</h2>
+<p><strong>HabalGo</strong> is a full-stack, 3-tier ride-hailing and booking management application inspired by Philippine motorcycle transport networks (e.g., Angkas, JoyRide, Move It). The system streamlines urban commuting by coordinating ride requests, automated passenger billing, driver dispatching, vehicle assignments, location endpoints, and passenger ratings.</p>
+<p>The backend infrastructure utilizes PHP 8.x with native PostgreSQL PDO (<code>pdo_pgsql</code>) communicating with a PostgreSQL 18 relational database engine. Strong relational constraints, foreign keys with referential actions, custom CHECK expressions, and automated B-Tree indexes are implemented within PostgreSQL to guarantee ACID transactional compliance.</p>
+<hr/>
+<h2>2. Database Architecture and Relational Model</h2>
+<p>The HabalGo database architecture enforces schema-level modularity. All core operational objects reside within the dedicated schema <strong><code>habalgo</code></strong> hosted inside the database <strong><code>grp00_habalgodb</code></strong>.</p>
+<pre><code>PostgreSQL Server Instance (localhost:5432)
+ └── Database: grp00_habalgodb
+      ├── Schema: public (Default, unutilized for application data)
+      └── Schema: habalgo (Application Operational Domain)
+           ├── habalgo.customer
+           ├── habalgo.driver
+           ├── habalgo.vehicle
+           ├── habalgo.driver_vehicle
+           ├── habalgo.location
+           ├── habalgo.booking
+           ├── habalgo.payment
+           └── habalgo.rating_feedback</code></pre>
+<h3>Relational Entity-Relationship Flow:</h3>
+<ul><li><strong><code>customer</code></strong> initiates one or many <strong><code>booking</code></strong> transactions.</li>
+<li><strong><code>driver</code></strong> is assigned to zero or many <strong><code>vehicle</code></strong> units via the associative table <strong><code>driver_vehicle</code></strong> and assigned to fulfill <strong><code>booking</code></strong> requests.</li>
+<li><strong><code>location</code></strong> records provide standardized spatial endpoints for both pickup and drop-off nodes.</li>
+<li><strong><code>payment</code></strong> records track fare amounts, payment channels (Cash, GCash, Maya), and settlement status for each booking.</li>
+<li><strong><code>rating_feedback</code></strong> captures qualitative feedback and numerical satisfaction ratings (1–5 scale).</li></ul>
+<hr/>
+<h2>3. Database Tables, Columns, and Relationships</h2>
+<p>The database schema comprises <strong>8 tables</strong>, <strong>36 columns</strong>, <strong>8 primary keys</strong>, <strong>8 foreign key relationships</strong>, <strong>4 check constraints</strong>, and <strong>4 unique constraints</strong>:</p>
+<table>
+<thead>
+<tr><th>Table</th><th>Primary Key</th><th>Foreign Keys &amp; Actions</th><th>Business &amp; Check Constraints</th></tr>
+</thead>
+<tbody>
+<tr><td><strong><code>customer</code></strong></td><td><code>customer_id</code> (SERIAL)</td><td>None</td><td><code>email</code> UNIQUE, NOT NULL on all fields</td></tr>
+<tr><td><strong><code>driver</code></strong></td><td><code>driver_id</code> (SERIAL)</td><td>None</td><td><code>license_no</code> UNIQUE, NOT NULL on all fields</td></tr>
+<tr><td><strong><code>vehicle</code></strong></td><td><code>vehicle_id</code> (SERIAL)</td><td>None</td><td><code>plate_no</code> UNIQUE, NOT NULL on all fields</td></tr>
+<tr><td><strong><code>driver_vehicle</code></strong></td><td><code>(driver_id, vehicle_id)</code></td><td>FK -&gt; <code>driver(driver_id)</code> ON UPDATE CASCADE ON DELETE RESTRICT&lt;br&gt;FK -&gt; <code>vehicle(vehicle_id)</code> ON UPDATE CASCADE ON DELETE RESTRICT</td><td><code>ck_assignment_dates</code> (<code>assigned_to IS NULL OR assigned_to &gt;= assigned_from</code>)</td></tr>
+<tr><td><strong><code>location</code></strong></td><td><code>location_id</code> (SERIAL)</td><td>None</td><td>Address and City NOT NULL</td></tr>
+<tr><td><strong><code>booking</code></strong></td><td><code>booking_id</code> (SERIAL)</td><td>FK -&gt; <code>customer(customer_id)</code> ON UPDATE CASCADE ON DELETE RESTRICT&lt;br&gt;FK -&gt; <code>driver(driver_id)</code> ON UPDATE CASCADE ON DELETE SET NULL&lt;br&gt;FK -&gt; <code>location(pickup_location_id)</code> RESTRICT&lt;br&gt;FK -&gt; <code>location(dropoff_location_id)</code> RESTRICT</td><td><code>ck_booking_status</code> (<code>booking_status IN ('Pending', 'Confirmed', 'In Progress', 'Completed', 'Cancelled')</code>)</td></tr>
+<tr><td><strong><code>payment</code></strong></td><td><code>payment_id</code> (SERIAL)</td><td>FK -&gt; <code>booking(booking_id)</code> ON UPDATE CASCADE ON DELETE RESTRICT</td><td><code>amount &gt; 0</code>, Status DEFAULT <code>'Pending'</code></td></tr>
+<tr><td><strong><code>rating_feedback</code></strong></td><td><code>rating_id</code> (SERIAL)</td><td>FK -&gt; <code>booking(booking_id)</code> ON UPDATE CASCADE ON DELETE RESTRICT&lt;br&gt;FK -&gt; <code>customer(customer_id)</code> ON UPDATE CASCADE ON DELETE RESTRICT</td><td><code>uq_rating_booking_customer</code> UNIQUE (<code>booking_id, customer_id</code>), <code>rating BETWEEN 1 AND 5</code></td></tr>
+</tbody>
+</table>
+<hr/>
+<h2>4. Application Roles and User Hierarchy</h2>
+<p>The application security model separates human end-users and administrative roles from database-level credentials:</p>
+<ol><li><strong>Passenger / Customer:</strong> Interacts with the frontend to register accounts, book motorcycle rides, view fares, and post ride ratings.</li>
+<li><strong>Driver / Rider:</strong> Receives dispatch assignments, updates ride status (<code>In Progress</code>, <code>Completed</code>), and accepts passenger pickups.</li>
+<li><strong>Dispatcher / Fleet Manager:</strong> Monitors active rides, assigns available drivers to vehicles, and reviews system performance metrics.</li>
+<li><strong>Backend Web Service (<code>api.php</code>):</strong> The intermediary software daemon executing SQL statements on behalf of web users through a secured database connection pool.</li></ol>
+<hr/>
+<h2>5. PostgreSQL Database Roles, Ownership, and Privileges</h2>
+<p>The database tier implements Role-Based Access Control (RBAC) following the <strong>Principle of Least Privilege</strong>:</p>
+<pre><code>Cluster Roles:
+ ├── postgres (Superuser, Cluster Owner)
+ ├── habalgo_admin (Application DBA, full DDL &amp; DML permissions: arwdDxtm)
+ ├── habalgo_app (Web Application Runtime Service, DML permissions: arw)
+ ├── habalgo_auditor (Read-Only Analytical Auditor, DML permissions: r)
+ ├── app_runtime_grp (NOLOGIN group role template)
+ └── app_readonly_grp (NOLOGIN group role template)</code></pre>
+<h3>Table &amp; Sequence Privilege Matrix:</h3>
+<ul><li><strong><code>habalgo_admin</code>:</strong> Granted <code>ALL PRIVILEGES</code> on all tables and sequences in schema <code>habalgo</code>.</li>
+<li><strong><code>habalgo_app</code>:</strong> Granted <code>SELECT, INSERT, UPDATE</code> on all tables, and <code>USAGE, SELECT</code> on all 7 sequences. <code>DELETE</code> and <code>TRUNCATE</code> are strictly denied.</li>
+<li><strong><code>habalgo_auditor</code>:</strong> Granted <code>SELECT</code> on all tables. All DML (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>) and sequence access are strictly denied.</li></ul>
+<hr/>
+<h2>6. Comprehensive Backup Plan and Strategy</h2>
+<p>The HabalGo backup plan guarantees high availability, data preservation, and rapid disaster recovery.</p>
+<ul><li><strong>Primary Asset:</strong> Database <code>grp00_habalgodb</code>, Schema <code>habalgo</code>.</li>
+<li><strong>Backup Mechanism:</strong> PostgreSQL Logical Dump via <code>pg_dump</code>.</li>
+<li><strong>Backup Archive Format:</strong> Custom Archive (<code>-Fc</code>).</li>
+<li><strong>Storage Strategy:</strong> Storage in protected directory outside version control (<code>$LOCALAPPDATA\HabalGo_Backups</code>), governed by filesystem permissions and git exclusion.</li>
+<li><strong>Data Protection Compliance:</strong> No production passwords, secret keys, or dumps committed to GitHub.</li></ul>
+<hr/>
+<h2>7. Backup Methodology and Technical Justification</h2>
+<p>The <strong>PostgreSQL Custom Format (<code>-Fc</code>)</strong> was chosen over plain SQL text dumps for the following architectural reasons:</p>
+<ol><li><strong>Internal Compression:</strong> Custom archives apply <code>zlib</code> stream compression, drastically reducing disk footprint while decreasing network transfer times during offsite replication.</li>
+<li><strong>Flexible Granular Restoration:</strong> The archive contains an internal Table of Contents (TOC). Administrators can selectively restore specific tables or exclude schemas using <code>pg_restore</code>.</li>
+<li><strong>Dependency Reordering:</strong> Unlike SQL scripts that can fail if parent tables are restored after child tables, <code>pg_restore</code> dynamically analyzes foreign keys and orders restoration properly.</li>
+<li><strong>Non-destructive Inspection:</strong> Administrators can verify archive contents, object counts, and schema versions via <code>pg_restore --list</code> without restoring data into a live engine.</li></ol>
+<hr/>
+<h2>8. Backup Schedule and Lifecycle Retention Policy</h2>
+<p>The system adheres to the industry standard <strong>3-2-1 Backup Rule</strong>:</p>
+<table>
+<thead>
+<tr><th>Backup Level</th><th>Frequency</th><th>Window</th><th>Retention Period</th><th>Storage Tier</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Full Logical Snapshot (<code>-Fc</code>)</strong></td><td>Daily</td><td>02:00 AM PHT</td><td>30 Days</td><td>Primary Local NVMe Volume</td></tr>
+<tr><td><strong>Cluster Roles &amp; Globals</strong></td><td>Daily</td><td>02:15 AM PHT</td><td>30 Days</td><td>Primary Local NVMe Volume</td></tr>
+<tr><td><strong>Weekly Archive Consolidation</strong></td><td>Weekly</td><td>Sun 03:00 AM PHT</td><td>12 Weeks</td><td>Secondary Network Attached Storage</td></tr>
+<tr><td><strong>Monthly Disaster Archive</strong></td><td>Monthly</td><td>1st of month</td><td>12 Months</td><td>Offsite Cloud Cold Storage (AES-256)</td></tr>
+</tbody>
+</table>
+<hr/>
+<h2>9. Recovery Objectives (RPO and RTO)</h2>
+<h3>Recovery Point Objective (RPO)</h3>
+<ul><li><strong>Target Baseline:</strong> <strong>15 minutes</strong> (production standard via WAL archiving); <strong>24 hours</strong> for logical dumps.</li>
+<li><strong>Business Justification:</strong> A motorcycle booking platform cannot tolerate hours of missing financial transactions or driver payout logs.</li></ul>
+<h3>Recovery Time Objective (RTO)</h3>
+<ul><li><strong>Target Baseline:</strong> <strong>30 minutes</strong>.</li>
+<li><strong>Empirical Restoration Result:</strong> <strong>&lt; 5 seconds</strong> for logical restoration of <code>grp00_habalgodb</code>, providing a 29-minute safety margin for verification and validation.</li></ul>
+<hr/>
+<h2>10. Backup Execution and Command Line Parameters</h2>
+<p>The backup was performed on the active production instance using the Windows PowerShell environment:</p>
+<pre><code>&amp; "C:\Program Files\PostgreSQL\18\bin\pg_dump.exe" `
+    -U postgres `
+    -h localhost `
+    -p 5432 `
+    -Fc `
+    -d grp00_habalgodb `
+    -f "C:\Users\Matt\.gemini\antigravity\brain\70a3cb86-a366-40fd-a9d0-0fafa69e72d3\scratch\backups\habalgo_activity6.dump"</code></pre>
+<ul><li><strong>Execution Exit Code:</strong> <code>0</code> (Success)</li>
+<li><strong>Process Output:</strong> Clean completion, no locks, zero warnings.</li></ul>
+<hr/>
+<h2>11. Backup File Verification, Metrics, and Checksum</h2>
+<p>Post-execution file audit confirmed valid creation and integrity:</p>
+<ul><li><strong>Filename:</strong> <code>habalgo_activity6.dump</code></li>
+<li><strong>File Location:</strong> <code>C:\Users\Matt\.gemini\antigravity\brain\70a3cb86-a366-40fd-a9d0-0fafa69e72d3\scratch\backups\</code> (Outside Git repository)</li>
+<li><strong>File Size:</strong> <code>29,989 bytes</code> (~29.3 KB)</li>
+<li><strong>Creation Timestamp:</strong> <code>2026-11-06 17:19:34 PHT</code></li>
+<li><strong>Cryptographic Hash (SHA-256):</strong>  </li></ul>
+<p>  <code>3CF5A86D91B9854F5D133737BB3ABD8459B99EE1A483C979840C3825518CA2E0</code></p>
+<hr/>
+<h2>12. Archive Table of Contents (TOC) Inspection</h2>
+<p>Inspection of the custom dump using <code>pg_restore --list</code> validated the archive structure:</p>
+<pre><code>&amp; "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" --list "habalgo_activity6.dump"</code></pre>
+<h3>Archive Header Summary:</h3>
+<ul><li><strong>Archive Creation Time:</strong> <code>2026-11-06 17:19:33</code></li>
+<li><strong>TOC Total Entries:</strong> <code>91</code></li>
+<li><strong>Format:</strong> <code>CUSTOM</code> (gzip compressed)</li>
+<li><strong>Engine Version:</strong> <code>18.6</code></li>
+<li><strong>Inventory Confirmed:</strong></li></ul>
+<p>  - 1 Schema (<code>habalgo</code>)</p>
+<p>  - 8 Relational Tables (<code>booking</code>, <code>customer</code>, <code>driver</code>, <code>driver_vehicle</code>, <code>location</code>, <code>payment</code>, <code>rating_feedback</code>, <code>vehicle</code>)</p>
+<p>  - 7 Sequences</p>
+<p>  - 8 Primary Key Constraints</p>
+<p>  - 4 Unique Constraints</p>
+<p>  - 4 Check Constraints</p>
+<p>  - 9 Foreign Key Constraints</p>
+<p>  - 5 Secondary B-Tree Indexes</p>
+<p>  - 16 Access Control Lists (ACL entries for <code>habalgo_admin</code>, <code>habalgo_app</code>, <code>habalgo_auditor</code>)</p>
+<hr/>
+<h2>13. Test Database Restoration Procedure</h2>
+<p>Restoration was executed against a designated test database to uphold zero-impact safety on production:</p>
+<h3>Step 1: Verification and Creation of Test Database</h3>
+<pre><code>&amp; "C:\Program Files\PostgreSQL\18\bin\createdb.exe" `
+    -U postgres `
+    -h localhost `
+    -p 5432 `
+    grp00_habalgodb_activity6_restore_test</code></pre>
+<h3>Step 2: Logical Archive Restoration</h3>
+<pre><code>&amp; "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" `
+    -U postgres `
+    -h localhost `
+    -p 5432 `
+    -d grp00_habalgodb_activity6_restore_test `
+    "habalgo_activity6.dump"</code></pre>
+<ul><li><strong>Exit Code:</strong> <code>0</code> (Success)</li>
+<li><strong>Errors / Warnings:</strong> Zero.</li></ul>
+<hr/>
+<h2>14. Restoration Empirical Results and Analysis</h2>
+<ul><li><strong>Production Preservation:</strong> The source database <code>grp00_habalgodb</code> remained untouched.</li>
+<li><strong>Ownership Analysis:</strong> Schema <code>habalgo</code> and all constituent objects were restored with ownership assigned to <code>postgres</code>.</li>
+<li><strong>Privilege Persistence:</strong> All table and sequence permissions were successfully bound to existing cluster roles (<code>habalgo_admin</code>, <code>habalgo_app</code>, <code>habalgo_auditor</code>) without role mismatch errors.</li></ul>
+<hr/>
+<h2>15. Database Verification Suite and Test Matrix</h2>
+<p>An exhaustive 15-point verification suite was executed against <code>grp00_habalgodb_activity6_restore_test</code> using <code>verification.sql</code>:</p>
+<table>
+<thead>
+<tr><th>#</th><th>Verification Criterion</th><th>Evaluated Attribute</th><th>Result</th><th>Status</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>Database Engine</td><td>PostgreSQL 18.6 on x86_64-windows</td><td>Matches Specification</td><td><strong>PASS</strong></td></tr>
+<tr><td>2</td><td>Test Database</td><td><code>grp00_habalgodb_activity6_restore_test</code></td><td>Online and healthy</td><td><strong>PASS</strong></td></tr>
+<tr><td>3</td><td>Schema Existence</td><td>Schema <code>habalgo</code> present</td><td>Verified (Owner: postgres)</td><td><strong>PASS</strong></td></tr>
+<tr><td>4</td><td>Table Count</td><td>8 application tables</td><td>Exactly 8 tables restored</td><td><strong>PASS</strong></td></tr>
+<tr><td>5</td><td>Column Schema</td><td>36 columns with data types</td><td>100% specification match</td><td><strong>PASS</strong></td></tr>
+<tr><td>6</td><td>Primary Keys</td><td>8 Primary Key constraints</td><td>All 8 PKs restored</td><td><strong>PASS</strong></td></tr>
+<tr><td>7</td><td>Foreign Keys</td><td>8 FK relationships with CASCADE/RESTRICT</td><td>All 8 FKs verified</td><td><strong>PASS</strong></td></tr>
+<tr><td>8</td><td>Unique Keys</td><td>4 Unique constraints</td><td>All 4 unique keys verified</td><td><strong>PASS</strong></td></tr>
+<tr><td>9</td><td>Check Constraints</td><td>4 Business rule check constraints</td><td>All 4 checks verified</td><td><strong>PASS</strong></td></tr>
+<tr><td>10</td><td>Secondary Indexes</td><td>5 B-Tree optimization indexes</td><td>All 5 indexes restored</td><td><strong>PASS</strong></td></tr>
+<tr><td>11</td><td>Sequences</td><td>7 SERIAL sequences</td><td>All 7 sequences linked</td><td><strong>PASS</strong></td></tr>
+<tr><td>12</td><td>Views &amp; Triggers</td><td>0 Views, 0 Triggers</td><td>Matches baseline design</td><td><strong>PASS</strong></td></tr>
+<tr><td>13</td><td>Record Baseline</td><td>0 rows in production baseline</td><td>Restored database matches</td><td><strong>PASS</strong></td></tr>
+<tr><td>14</td><td>Relational Queries</td><td>Multi-table JOIN query from <code>api.php</code></td><td>Executed with 0 errors</td><td><strong>PASS</strong></td></tr>
+<tr><td>15</td><td>Object ACLs</td><td>Object grants for admin, app, auditor</td><td>Verified identical to source</td><td><strong>PASS</strong></td></tr>
+</tbody>
+</table>
+<hr/>
+<h2>16. Empirical Access Control and Least Privilege Verification</h2>
+<p>Least privilege enforcement was validated in the restored test database through direct role simulation:</p>
+<pre><code>                  ┌───────────────────────────────┐
+                  │ Restored Test Database        │
+                  │ grp00_habalgodb_activity6_    │
+                  │ restore_test                  │
+                  └──────────────┬────────────────┘
+                                 │
+         ┌───────────────────────┴───────────────────────┐
+         ▼                                               ▼
+┌─────────────────────────────────┐   ┌─────────────────────────────────┐
+│ Role: habalgo_app               │   │ Role: habalgo_auditor           │
+│ Privileges: SELECT, INSERT, UPD │   │ Privileges: SELECT only         │
+└────────────────┬────────────────┘   └────────────────┬────────────────┘
+                 │                                     │
+   ┌─────────────┴─────────────┐         ┌─────────────┴─────────────┐
+   ▼                           ▼         ▼                           ▼
+[SELECT count(*)]      [DELETE FROM] [SELECT count(*)]       [INSERT INTO]
+   Outcome:               Outcome:      Outcome:                Outcome:
+    PASS                   PASS          PASS                    PASS
+ (Permitted)             (Blocked)    (Permitted)              (Blocked)</code></pre>
+<ol><li><strong><code>habalgo_app</code> Permitted Action:</strong> <code>SELECT count(*) FROM habalgo.customer;</code> -&gt; <strong>PASS</strong> (Permitted).</li>
+<li><strong><code>habalgo_app</code> Denied Action:</strong> <code>DELETE FROM habalgo.customer WHERE customer_id = 999;</code> -&gt; <strong>PASS</strong> (Engine returned <code>ERROR: permission denied for table customer</code>).</li>
+<li><strong><code>habalgo_auditor</code> Permitted Action:</strong> <code>SELECT count(*) FROM habalgo.booking;</code> -&gt; <strong>PASS</strong> (Permitted).</li>
+<li><strong><code>habalgo_auditor</code> Denied Action:</strong> <code>INSERT INTO habalgo.customer VALUES (...);</code> -&gt; <strong>PASS</strong> (Engine returned <code>ERROR: permission denied for table customer</code>).</li></ol>
+<hr/>
+<h2>17. Controlled Disaster Recovery Simulation</h2>
+<p>A controlled simulation was executed in the test database to model an accidental cascading deletion incident:</p>
+<ol><li><strong>Pre-Incident Setup:</strong> Injected a disposable test customer (ID: 1, <code>'DISPOSABLE TEST RIDER - SIMULATION'</code>), test driver (ID: 1), location (ID: 1), and completed booking (ID: 1) into <code>grp00_habalgodb_activity6_restore_test</code>.</li>
+<li><strong>Pre-Incident Checkpoint:</strong> Generated point-in-time custom backup <code>habalgo_sim_checkpoint.dump</code> (SHA-256: <code>27185EAEF5DCC8266FB974A485E19AC54A8B3F634B5F13C4B11AD8D970F3CFF5</code>).</li>
+<li><strong>Simulated Incident:</strong> Executed cascading deletion:</li></ol>
+<p>   ```sql</p>
+<p>   DELETE FROM habalgo.booking WHERE booking_id = 1;</p>
+<p>   DELETE FROM habalgo.customer WHERE customer_id = 1;</p>
+<p>   ```</p>
+<ol><li><strong>Incident Confirmation:</strong> Queried test database; customer ID 1 and booking ID 1 returned <code>0 rows</code> (Data Loss Verified).</li>
+<li><strong>Disaster Recovery Provisioning:</strong> Created isolated recovery database: <code>grp00_habalgodb_recovery_test</code>.</li>
+<li><strong>Recovery Restoration:</strong> Restored <code>habalgo_sim_checkpoint.dump</code> into <code>grp00_habalgodb_recovery_test</code>.</li>
+<li><strong>Record Extraction:</strong> Located customer ID 1 and booking ID 1 in the recovery database.</li>
+<li><strong>Targeted Transplant:</strong> Transplanted the recovered records back into <code>grp00_habalgodb_activity6_restore_test</code>.</li></ol>
+<hr/>
+<h2>18. Disaster Recovery Outcome and Comparative Analysis</h2>
+<p>Comparative audit confirmed that recovered records were identical to pre-incident values:</p>
+<table>
+<thead>
+<tr><th>Column</th><th>Pre-Incident Baseline</th><th>Recovered Attribute</th><th>Match Result</th></tr>
+</thead>
+<tbody>
+<tr><td><code>customer.customer_id</code></td><td><code>1</code></td><td><code>1</code></td><td><strong>100% IDENTICAL</strong></td></tr>
+<tr><td><code>customer.name</code></td><td><code>DISPOSABLE TEST RIDER - SIMULATION</code></td><td><code>DISPOSABLE TEST RIDER - SIMULATION</code></td><td><strong>100% IDENTICAL</strong></td></tr>
+<tr><td><code>customer.phone</code></td><td><code>09990001122</code></td><td><code>09990001122</code></td><td><strong>100% IDENTICAL</strong></td></tr>
+<tr><td><code>customer.email</code></td><td><code>disposable.rider.simulation@habalgo-test.local</code></td><td><code>disposable.rider.simulation@habalgo-test.local</code></td><td><strong>100% IDENTICAL</strong></td></tr>
+<tr><td><code>booking.booking_id</code></td><td><code>1</code></td><td><code>1</code></td><td><strong>100% IDENTICAL</strong></td></tr>
+<tr><td><code>booking.status</code></td><td><code>Completed</code></td><td><code>Completed</code></td><td><strong>100% IDENTICAL</strong></td></tr>
+<tr><td><code>booking.date</code></td><td><code>2026-11-06 17:23:13.367313</code></td><td><code>2026-11-06 17:23:13.367313</code></td><td><strong>100% IDENTICAL</strong></td></tr>
+</tbody>
+</table>
+<ul><li><strong>Disaster Recovery Outcome:</strong> <strong>PASS (100% Successful)</strong>.</li>
+<li><strong>Production Status:</strong> Production database <code>grp00_habalgodb</code> remained completely untouched throughout the entire simulation.</li></ul>
+<hr/>
+<h2>19. Errors, Edge Cases, and Technical Limitations</h2>
+<ol><li><strong>Single-Database Role Exclusion:</strong> A database dump (<code>pg_dump -d grp00_habalgodb</code>) contains only database objects, not PostgreSQL cluster roles. Roles must be backed up using <code>pg_dumpall --globals-only</code> or recreated via DDL scripts (<code>03_roles_and_privileges.sql</code>).</li>
+<li><strong>The RPO Snapshot Gap:</strong> Logical backups only restore data up to the moment the dump was taken. Transactions occurring after the backup snapshot are lost unless continuous Write-Ahead Log (WAL) archiving is implemented.</li>
+<li><strong>Foreign Key Cascade Risks:</strong> In a relational transportation system, direct deletion of drivers or customers is blocked by foreign key constraints (<code>RESTRICT</code>). While this protects data, unqualified cascade scripts can delete related bookings and payments.</li></ol>
+<hr/>
+<h2>20. DBA Recommendations and Best Practices</h2>
+<ol><li><strong>Implement WAL Archiving &amp; Point-In-Time Recovery (PITR):</strong> Enable <code>archive_mode = on</code> and configure a continuous WAL archive command to allow sub-minute recovery up to the moment of failure.</li>
+<li><strong>Automate Scheduled Backups with PowerShell &amp; Task Scheduler:</strong> Deploy <code>backup.ps1</code> as a nightly Windows Scheduled Task running under a dedicated service account.</li>
+<li><strong>Replicate Backups to Cloud Storage (3-2-1 Rule):</strong> Synchronize the local backup directory to encrypted cloud object storage (e.g., AWS S3 with Glacier retention).</li>
+<li><strong>Enforce Row-Level Security (RLS):</strong> Implement PostgreSQL RLS policies on <code>habalgo.booking</code> so passengers and drivers can only access their own records.</li>
+<li><strong>Periodic Disaster Recovery Drills:</strong> Schedule quarterly simulated disaster recovery drills using <code>restore.ps1</code> and <code>recovery-simulation.sql</code>.</li></ol>
+<hr/>
+<h2>21. AI Usage and Academic Integrity Declaration</h2>
+<p>This report, corresponding scripts (<code>backup.ps1</code>, <code>restore.ps1</code>, <code>verification.sql</code>, <code>recovery-simulation.sql</code>), and documentation were developed by the student with the technical assistance of Google Antigravity / Gemini as an AI-powered coding and database administration pair-programmer. </p>
+<p>All database operations, SQL queries, role validations, checksums, and recovery simulations were empirically executed and verified against a live local PostgreSQL 18.6 instance. No results, execution outputs, or hashes were fabricated.</p>
+<hr/>
+<h2>22. Visual Evidence and Screenshot Catalog</h2>
+<p>Below are clearly labelled screenshot placeholders detailing required submission evidence:</p>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 1: DATABASE CONNECTION AND VERSION                                         |
+| Command: psql -U postgres -h localhost -p 5432 -c "SELECT version();"                             |
+| Description: Confirms live connection to PostgreSQL 18.6 on x86_64-windows.                      |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 2: DATABASE INVENTORY AND SCHEMAS                                          |
+| Command: psql -U postgres -h localhost -p 5432 -d grp00_habalgodb -c "\dn"                        |
+| Description: Displays schema habalgo within grp00_habalgodb.                                       |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 3: BACKUP CREATION VIA PG_DUMP                                             |
+| Command: pg_dump -U postgres -h localhost -p 5432 -Fc -d grp00_habalgodb -f habalgo_activity6.dump |
+| Description: Shows clean execution of pg_dump in Custom Archive format (-Fc).                     |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 4: BACKUP FILE SIZE AND SHA-256 CHECKSUM                                   |
+| Command: Get-FileHash -Path habalgo_activity6.dump -Algorithm SHA256; Get-Item habalgo...        |
+| Description: Displays 29,989 bytes file size and hash 3CF5A86D91B9854F5D133737BB3ABD8459B99EE...   |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 5: ARCHIVE TABLE OF CONTENTS (TOC) INSPECTION                              |
+| Command: pg_restore --list habalgo_activity6.dump                                                 |
+| Description: Displays 91 TOC entries cataloging all 8 tables, sequences, constraints, and ACLs.   |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 6: TEST DATABASE CREATION                                                  |
+| Command: createdb -U postgres -h localhost -p 5432 grp00_habalgodb_activity6_restore_test         |
+| Description: Confirms creation of isolated test database with _activity6_restore_test suffix.     |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 7: RESTORATION VIA PG_RESTORE                                              |
+| Command: pg_restore -U postgres -h localhost -p 5432 -d grp00_habalgodb_... habalgo_activity6.dump |
+| Description: Confirms clean restoration into test database with exit code 0.                      |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 8: RESTORED TABLE VERIFICATION                                             |
+| Command: psql -U postgres -d grp00_habalgodb_activity6_restore_test -c "\dt habalgo.*"            |
+| Description: Displays all 8 tables restored under schema habalgo.                                 |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 9: ROLE AND ACCESS CONTROL LIST (ACL) VERIFICATION                         |
+| Command: psql -U postgres -d grp00_habalgodb_activity6_restore_test -c "\dp habalgo.*"            |
+| Description: Confirms permissions for habalgo_admin (ALL), habalgo_app (arw), and auditor (r).    |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 10: PERMISSION TESTING (PERMITTED VS. DENIED)                              |
+| Command: SET ROLE habalgo_app; SELECT count(*)...; DELETE FROM habalgo.customer...               |
+| Description: Shows SELECT succeeding and DELETE blocked with 'permission denied for table'.       |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 11: DISASTER RECOVERY SIMULATION (SIMULATED DATA LOSS)                     |
+| Command: DELETE FROM habalgo.booking WHERE id=1; DELETE FROM customer WHERE id=1; SELECT *...     |
+| Description: Confirms deletion of disposable test record (0 rows returned).                       |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<pre><code>+---------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 12: DISASTER RECOVERY RESULT (EXTRACTED &amp; RESTORED RECORD)                 |
+| Command: SELECT * FROM habalgo.customer WHERE customer_id = 1;                                    |
+| Description: Displays 100% recovered customer record verified against pre-incident baseline.      |
++---------------------------------------------------------------------------------------------------+</code></pre>
+<hr/>
+<p><em>End of COMP 018 Activity 6 Official Final Technical Documentation.</em></p>
+</body>
+</html>

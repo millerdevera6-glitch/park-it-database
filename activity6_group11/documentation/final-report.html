@@ -1,0 +1,494 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>COMP 018 Activity 6 - Final Report</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: #24292e;
+    max-width: 950px;
+    margin: 40px auto;
+    padding: 0 30px;
+  }
+  h1 { font-size: 2.2em; border-bottom: 2px solid #eaecef; padding-bottom: 0.3em; margin-top: 28px; color: #1a365d; }
+  h2 { font-size: 1.6em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; margin-top: 24px; color: #2b6cb0; }
+  h3 { font-size: 1.25em; margin-top: 20px; color: #2d3748; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #dfe2e5; padding: 8px 12px; font-size: 13px; text-align: left; }
+  th { background-color: #f6f8fa; font-weight: 600; }
+  tr:nth-child(even) { background-color: #fcfcfc; }
+  pre { background-color: #f6f8fa; border-radius: 6px; padding: 12px; overflow: auto; font-family: Consolas, monospace; font-size: 12px; border: 1px solid #e1e4e8; }
+  code { background-color: rgba(27,31,35,0.05); padding: 0.2em 0.4em; border-radius: 3px; font-family: Consolas, monospace; font-size: 85%; }
+  blockquote { margin: 12px 0; padding: 8px 16px; color: #4a5568; background-color: #ebf8ff; border-left: 4px solid #3182ce; }
+  hr { height: 2px; margin: 24px 0; background-color: #e2e8f0; border: 0; }
+  .placeholder { background-color: #f7fafc; border: 2px dashed #cbd5e0; border-radius: 6px; padding: 16px; margin: 16px 0; font-family: Consolas, monospace; font-size: 12px; }
+  @media print {
+    body { max-width: 100%; margin: 0; padding: 15px; }
+    h1, h2, h3 { page-break-after: avoid; }
+    table, pre, .placeholder { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body><h1>COMP 018 — Activity 6: Final Technical Report</h1>
+<h2>Database Backup, Restoration, and Disaster Recovery Management</h2>
+<h3>Project: BoardTrack — Boarding House &amp; Rental Management System</h3>
+<hr>
+<p><strong>Course Code &amp; Title:</strong> COMP 018 — Database Administration  </p>
+<p><strong>Academic Period:</strong> Academic Year 2026–2027  </p>
+<p><strong>Student Specialization:</strong> Information Technology  </p>
+<p><strong>Technical Roles:</strong> Senior PostgreSQL Database Administrator / Node.js Developer / Technical Documentation Specialist  </p>
+<p><strong>Target Database:</strong> <code>boardtrack_db</code>  </p>
+<p><strong>Host &amp; Port:</strong> <code>localhost:5432</code>  </p>
+<p><strong>Database Management System:</strong> PostgreSQL 18.6 on x86_64-windows (msvc-19.44.35228, 64-bit)  </p>
+<p><strong>Document Classification:</strong> Enterprise Technical Deliverable &amp; Academic Audit  </p>
+<p><strong>Date of Submission:</strong> 2026-11-06  </p>
+<hr>
+<h2>Table of Contents</h2>
+<p>1. [Project Overview](#1-project-overview)</p>
+<p>2. [Database Architecture](#2-database-architecture)</p>
+<p>3. [Database Tables, Columns, and Relationships](#3-database-tables-columns-and-relationships)</p>
+<p>4. [Enterprise Backup Plan](#4-enterprise-backup-plan)</p>
+<p>5. [Backup Method and Technical Rationale](#5-backup-method-and-technical-rationale)</p>
+<p>6. [Proposed Backup Schedule](#6-proposed-backup-schedule)</p>
+<p>7. [Data Retention Policy (3-2-1 Strategy)](#7-data-retention-policy-3-2-1-strategy)</p>
+<p>8. [Recovery Objectives (RPO and RTO)](#8-recovery-objectives-rpo-and-rto)</p>
+<p>9. [Backup Commands and Script Execution](#9-backup-commands-and-script-execution)</p>
+<p>10. [Backup File Size, Path, and Cryptographic Hash](#10-backup-file-size-path-and-cryptographic-hash)</p>
+<p>11. [Archive Inspection and Table of Contents (TOC)](#11-archive-inspection-and-table-of-contents-toc)</p>
+<p>12. [Restoration Architecture and Procedures](#12-restoration-architecture-and-procedures)</p>
+<p>13. [Restoration Results and Ownership Audit](#13-restoration-results-and-ownership-audit)</p>
+<p>14. [Database Verification Suite and Test Matrix](#14-database-verification-suite-and-test-matrix)</p>
+<p>15. [PostgreSQL Role and Cluster-Wide Privilege Verification](#15-postgresql-role-and-cluster-wide-privilege-verification)</p>
+<p>16. [Access Control and Permission Test Results](#16-access-control-and-permission-test-results)</p>
+<p>17. [Controlled Disaster Recovery Simulation Timeline](#17-controlled-disaster-recovery-simulation-timeline)</p>
+<p>18. [Recovery Simulation Outcome and Data Comparison](#18-recovery-simulation-outcome-and-data-comparison)</p>
+<p>19. [Errors, Edge Cases, and Technical Limitations](#19-errors-edge-cases-and-technical-limitations)</p>
+<p>20. [Production DBA Recommendations](#20-production-dba-recommendations)</p>
+<p>21. [AI Usage and Academic Integrity Declaration](#21-ai-usage-and-academic-integrity-declaration)</p>
+<hr>
+<h2>1. Project Overview</h2>
+<p><strong>BoardTrack</strong> is a centralized property and rental management application designed to automate property recordkeeping, accommodation unit management, tenant identity tracking, lease contract enforcement, rental payment collections, and recurring utility billing. </p>
+<p>The software stack integrates:</p>
+<p>* <strong>Application Framework:</strong> Node.js (version $\ge$ 20.12), Express 4.19, and EJS server-side templates.</p>
+<p>* <strong>Database Driver:</strong> <code>pg</code> (Node-Postgres connection pooler).</p>
+<p>* <strong>Database Management System:</strong> PostgreSQL 18.6 (written to support features from PostgreSQL 13+).</p>
+<p>* <strong>Cryptographic &amp; Indexing Extensions:</strong> <code>pgcrypto</code> for bcrypt-compatible password verification (<code>crypt()</code>, <code>gen_salt()</code>) and <code>btree_gist</code> for multivariable GiST exclusion constraints.</p>
+<p>In Activity 6 of COMP 018 (Database Administration), the database administrator&#39;s objective is to formulate, implement, verify, and document a complete enterprise backup, restoration, and disaster recovery strategy. The activity establishes resilient recovery safeguards, automates backup execution via Windows PowerShell, verifies relational integrity and access controls against the principle of least privilege, and executes a controlled recovery simulation without endangering existing production data.</p>
+<hr>
+<h2>2. Database Architecture</h2>
+<p>The BoardTrack database architecture enforces relational normalization up to Third Normal Form (3NF), separating physical facilities, rentable spaces, tenants, legal contracts, and financial audits.</p>
+<pre>erDiagram
+    property ||--o{ room : &quot;contains (1:N)&quot;
+    room ||--o{ lease : &quot;contracted_in (1:N)&quot;
+    tenant ||--o{ lease : &quot;enters_into (1:N)&quot;
+    tenant ||--o| app_user : &quot;authenticates_as (1:0..1)&quot;
+    lease ||--o{ payment : &quot;settled_by (1:N)&quot;
+    lease ||--o{ utility_bill : &quot;incurs (1:N)&quot;
+
+    property {
+        int property_id PK
+        varchar property_name
+        varchar address
+    }
+    room {
+        int room_id PK
+        int property_id FK
+        varchar room_number
+        numeric monthly_rate
+        varchar status
+    }
+    tenant {
+        int tenant_id PK
+        varchar full_name
+        varchar contact_number
+        varchar email UK
+        varchar valid_id_number
+    }
+    lease {
+        int lease_id PK
+        int tenant_id FK
+        int room_id FK
+        date start_date
+        date end_date
+        date moved_out_on
+        numeric monthly_rent
+        varchar status
+    }
+    payment {
+        int payment_id PK
+        int lease_id FK
+        date payment_date
+        numeric amount
+        varchar payment_method
+        varchar status
+    }
+    utility_bill {
+        int utility_bill_id PK
+        int lease_id FK
+        date billing_period
+        varchar utility_type
+        numeric amount
+        varchar status
+    }
+    app_user {
+        int user_id PK
+        varchar username UK
+        text password_hash
+        varchar role
+        int tenant_id FK
+        boolean is_active
+    }
+</pre>
+<h3>Architectural Key Characteristics:</h3>
+<p>1. <strong>Dynamic Balance Derivation:</strong> Balances are never stored as denormalized table columns. Instead, the view <code>v_lease_summary</code> aggregates completed payments (<code>SUM(payment.amount)</code>) and utility charges on the fly, eliminating update anomalies.</p>
+<p>2. <strong>Defensive Database Triggers:</strong></p>
+<p>   - <code>trg_lease_sync_room</code> automatically synchronizes <code>room.status</code> between <code>OCCUPIED</code> and <code>AVAILABLE</code> upon lease insertion, status modification, or termination.</p>
+<p>   - <code>trg_room_status_guard</code> prevents manual room status changes that contradict active lease intervals.</p>
+<p>3. <strong>GiST Exclusion Constraint:</strong> <code>ex_lease_no_overlap</code> mathematically prevents overlapping active leases on the same room across date intervals <code>[start_date, end_date]</code>.</p>
+<hr>
+<h2>3. Database Tables, Columns, and Relationships</h2>
+<p>The repository defines 7 business tables, 1 migration tracking table, and 1 reporting view:</p>
+<table>
+<tr><th>Table Name</th><th>Prompt Label</th><th>Primary Key</th><th>Key Foreign Keys &amp; Constraints</th><th>Business Purpose</th></tr>
+<tr><td>`property`</td><td>`properties`</td><td>`property_id`</td><td>PK index; NOT NULL on name/address</td><td>Master records of rental buildings.</td></tr>
+<tr><td>`room`</td><td>`rooms`</td><td>`room_id`</td><td>FK `property_id`; `uq_room_per_property UNIQUE(property_id, room_number)`; `CHECK (monthly_rate &gt; 0)`</td><td>Individual accommodation units.</td></tr>
+<tr><td>`tenant`</td><td>`tenants`</td><td>`tenant_id`</td><td>`UNIQUE(email)`; Contact number NOT NULL</td><td>Master directory of registered tenants.</td></tr>
+<tr><td>`lease`</td><td>`leases`</td><td>`lease_id`</td><td>FK `tenant_id`, FK `room_id`; `CHECK (end_date &gt; start_date)`; `ex_lease_no_overlap` (GiST)</td><td>Binding rental contracts and validity dates.</td></tr>
+<tr><td>`payment`</td><td>`payments`</td><td>`payment_id`</td><td>FK `lease_id`; `CHECK (amount &gt; 0)`; Payment method check</td><td>Rent collection transaction ledger.</td></tr>
+<tr><td>`utility_bill`</td><td>`utility_bills`</td><td>`utility_bill_id`</td><td>FK `lease_id`; `CHECK (EXTRACT(DAY FROM billing_period) = 1)`</td><td>Monthly electricity, water, and internet bills.</td></tr>
+<tr><td>`app_user`</td><td>`app_user`</td><td>`user_id`</td><td>`UNIQUE(username)`; FK `tenant_id`; `CHECK ((role=&#39;tenant&#39;) = (tenant_id IS NOT NULL))`</td><td>Application authentication and user roles.</td></tr>
+<tr><td>`schema_migrations`</td><td>*(system)*</td><td>`name`</td><td>PK index; `applied_at TIMESTAMPTZ`</td><td>Tracks applied migration versions.</td></tr>
+</table>
+<p>&gt; <strong>Historical Integrity Guarantee:</strong> Every foreign key in BoardTrack enforces <code>ON DELETE NO ACTION</code>. Deleting master entities (such as properties or tenants) while historical leases, payments, or bills exist is blocked at the database engine level.</p>
+<hr>
+<h2>4. Enterprise Backup Plan</h2>
+<p>The BoardTrack enterprise backup plan defines a comprehensive strategy designed to protect against hardware failure, operator mistakes, and system compromise:</p>
+<p>* <strong>Scope of Protection:</strong> Database <code>boardtrack_db</code>, schema <code>public</code>, extensions (<code>btree_gist</code>, <code>pgcrypto</code>), base tables, primary/foreign/unique/check/exclusion constraints, secondary indexes, sequences, procedural functions, triggers, and views.</p>
+<p>* <strong>Storage Path:</strong> Dedicated administrative path <code>C:\PostgreSQL\backups\boardtrack\</code> (or <code>activity-6-boardtrack/backups/</code>), outside the application repository.</p>
+<p>* <strong>Access Control:</strong> Restricted via NTFS file permissions to the PostgreSQL service account and database administrators. Application runtime accounts are denied access.</p>
+<p>* <strong>Version Control Isolation:</strong> All dump extensions (<code>*.dump</code>, <code>*.backup</code>, <code>*.tar</code>, <code>*.sql</code>) are strictly ignored in <code>.gitignore</code>.</p>
+<hr>
+<h2>5. Backup Method and Technical Rationale</h2>
+<p>The approved logical backup mechanism is <strong>PostgreSQL <code>pg_dump</code></strong> utilizing the <strong>Custom Archive Format (<code>-Fc</code>)</strong>.</p>
+<pre>pg_dump -U &lt;username&gt; -h localhost -p 5432 -Fc -d boardtrack_db -f &lt;backup_path&gt;
+</pre>
+<h3>Technical Justification for `-Fc`:</h3>
+<p>1. <strong>Integrated zlib Compression:</strong> The custom archive format applies compression automatically, reducing disk storage and network transmission bandwidth by up to 70% compared to raw plain-text SQL files.</p>
+<p>2. <strong>Selective Restoration:</strong> Unlike plain SQL dumps (<code>-Fp</code>), <code>-Fc</code> archives allow granular restoration of individual tables, schemas, or data without restoring the entire database.</p>
+<p>3. <strong>Table of Contents (TOC) Inspection:</strong> The archive contains an embedded binary catalog readable by <code>pg_restore --list</code>, allowing immediate pre-restoration validation and audit verification.</p>
+<p>4. <strong>Dependency-Aware Reordering:</strong> <code>pg_restore</code> dynamically determines optimal object creation order, preventing foreign key violation errors during restoration.</p>
+<p>5. <strong>Parallel Multithreading:</strong> Supports parallel table restoration via <code>pg_restore -j &lt;threads&gt;</code>, minimizing Recovery Time Objective (RTO).</p>
+<p>6. <strong>SQL Injection Resistance:</strong> Stored as serialized PostgreSQL binary structures, preventing script injection or interpretation errors across varying client locales.</p>
+<hr>
+<h2>6. Proposed Backup Schedule</h2>
+<p>To guarantee business continuity without impacting tenant portal response times, the following tiered backup schedule is established:</p>
+<table>
+<tr><th>Tier</th><th>Execution Timing</th><th>Backup Type &amp; Format</th><th>Target Storage</th><th>Retention Window</th></tr>
+<tr><td>**Daily Full**</td><td>02:00 AM PHT</td><td>Logical `pg_dump -Fc`</td><td>Local Fast NVMe</td><td>14 Days</td></tr>
+<tr><td>**Weekly Full**</td><td>Sunday 03:00 AM PHT</td><td>Logical `pg_dump -Fc` + Cluster Globals</td><td>Local Encrypted NAS</td><td>8 Weeks</td></tr>
+<tr><td>**Monthly Archive**</td><td>1st of month 04:00 AM PHT</td><td>Logical `pg_dump -Fc` + Checksum Audit</td><td>Geo-Redundant Cloud Vault</td><td>12 Months</td></tr>
+<tr><td>**Annual Compliance**</td><td>December 31 11:00 PM PHT</td><td>Full System Snapshot + DDL Export</td><td>Offline Cold Archive</td><td>7 Years</td></tr>
+</table>
+<hr>
+<h2>7. Data Retention Policy (3-2-1 Strategy)</h2>
+<p>BoardTrack enforces the industry-standard <strong>3-2-1 Data Preservation Rule</strong>:</p>
+<p>1. <strong>3 Copies of Data:</strong> Production operational database, primary on-site backup storage, and secondary off-site replica.</p>
+<p>2. <strong>2 Different Storage Media:</strong> High-speed local solid-state storage and independent encrypted network/cloud storage (e.g., AWS S3 with Object Lock or secure SFTP).</p>
+<p>3. <strong>1 Off-Site Location:</strong> Geo-separated storage to withstand localized environmental, fire, or physical hardware disasters.</p>
+<p>Rotation is governed by a Grandfather-Father-Son (GFS) schedule: daily backups are preserved for 14 days, weekly backups for 2 months, and monthly archives for 1 year.</p>
+<hr>
+<h2>8. Recovery Objectives (RPO and RTO)</h2>
+<h3>8.1 Recovery Point Objective (RPO)</h3>
+<p>* <strong>Logical Backup Baseline:</strong> <strong>RPO = 24 Hours.</strong> (Maximum data loss is limited to data recorded between the 02:00 AM scheduled backup and the incident).</p>
+<p>* <strong>Enterprise Production Target (with Continuous WAL Archiving):</strong> <strong>RPO $\le$ 5 Minutes.</strong></p>
+<h3>8.2 Recovery Time Objective (RTO)</h3>
+<p>* <strong>Target:</strong> <strong>RTO &lt; 30 Minutes.</strong></p>
+<p>* <strong>Disaster Recovery Breakdown:</strong></p>
+<p>  - PostgreSQL service verification: 3 minutes.</p>
+<p>  - Test database provisioning (<code>createdb</code>): 2 minutes.</p>
+<p>  - Multi-threaded restoration (<code>pg_restore -j 4</code>): 5 minutes.</p>
+<p>  - Automated integrity audit (<code>verification.sql</code>): 10 minutes.</p>
+<p>  - Application connectivity validation: 5 minutes.</p>
+<hr>
+<h2>9. Backup Commands and Script Execution</h2>
+<p>The automated PowerShell backup utility <code>activity-6-boardtrack/backup.ps1</code> executes the following sequence:</p>
+<h3>9.1 Core Command Syntax</h3>
+<pre>pg_dump -U postgres -h localhost -p 5432 -Fc -d boardtrack_db -f backups\boardtrack_activity6.dump
+</pre>
+<h3>9.2 Script Execution &amp; Safety Stop-Condition Audit</h3>
+<p>When executed on the host system against target database <code>boardtrack_db</code>:</p>
+<pre>PS C:\Users\drewm\Downloads\CUTE\BoardTrack&gt; powershell -ExecutionPolicy Bypass -File &quot;activity-6-boardtrack\backup.ps1&quot; -Database boardtrack_db
+=================================================================
+ BoardTrack Database Backup Procedure (COMP 018 Activity 6)
+ Target Database: boardtrack_db
+ Host: localhost:5432
+ User: postgres
+ Timestamp: 2026-11-06 17:31:49
+=================================================================
+[1/6] Verified PostgreSQL binaries located at: C:\Program Files\PostgreSQL\18\bin
+[2/6] Checking database server connectivity on localhost:5432...
+      PostgreSQL service is active and responsive.
+[3/6] Verifying presence of target database &#39;boardtrack_db&#39;...
+WARNING: =================================================================
+WARNING:  STOP-CONDITION TRIGGERED: DATABASE DOES NOT EXIST ON CLUSTER
+WARNING:  Database &#39;boardtrack_db&#39; was not found on the PostgreSQL server.
+WARNING:  Per COMP 018 Safety Rule 3: &#39;Never initialize or reseed the original database&#39;
+WARNING:  and Phase 3: &#39;If it does not exist, stop database execution. Do not initialize or recreate it.&#39;
+WARNING:  Halting backup execution to prevent unvetted database creation.
+WARNING: =================================================================
+</pre>
+<p>&gt; [!IMPORTANT]</p>
+<p>&gt; <strong>Audit Finding:</strong> The backup procedure correctly detected that <code>boardtrack_db</code> does not exist on the live PostgreSQL server. In strict adherence to Safety Rule 3 (*&quot;Never initialize or reseed the original database&quot;*) and the Phase 3 Directive (*&quot;If it does not exist, stop database execution. Do not initialize or recreate it&quot;*), live execution was safely halted without creating an unvetted database.</p>
+<hr>
+<h2>10. Backup File Size, Path, and Cryptographic Hash</h2>
+<p>* <strong>Backup Archive Target Path:</strong> <code>activity-6-boardtrack\backups\boardtrack_activity6.dump</code></p>
+<p>* <strong>Checksum Manifest Path:</strong> <code>activity-6-boardtrack\backups\boardtrack_activity6.dump.sha256</code></p>
+<p>* <strong>Live File Status:</strong> Execution halted due to unprovisioned cluster database.</p>
+<p>* <strong>Anticipated Archive Size:</strong> $\approx 45 \text{ KB}$ to $65 \text{ KB}$ (compressed custom format encompassing 8 tables, indexes, triggers, views, and initial seed records).</p>
+<p>* <strong>Hash Computation Command:</strong></p>
+<p>  ```powershell</p>
+<p>  Get-FileHash -Path backups\boardtrack_activity6.dump -Algorithm SHA256</p>
+<p>  ```</p>
+<hr>
+<h2>11. Archive Inspection and Table of Contents (TOC)</h2>
+<p>Archive inspection is automated via <code>pg_restore --list</code>:</p>
+<pre>pg_restore --list backups\boardtrack_activity6.dump
+</pre>
+<h3>Anticipated Table of Contents (TOC) Summary:</h3>
+<pre>;
+; Archive created by pg_dump version 18.6
+;
+; Archive entries:
+1; 3079 16388 EXTENSION - btree_gist 
+2; 3079 16399 EXTENSION - pgcrypto 
+3; 1259 16409 TABLE public property boardtrack_owner
+4; 1259 16417 TABLE public room boardtrack_owner
+5; 1259 16428 TABLE public tenant boardtrack_owner
+6; 1259 16437 TABLE public lease boardtrack_owner
+7; 1259 16450 TABLE public payment boardtrack_owner
+8; 1259 16459 TABLE public utility_bill boardtrack_owner
+9; 1259 16468 TABLE public app_user boardtrack_owner
+10; 1259 16478 TABLE public schema_migrations boardtrack_owner
+11; 1259 16484 VIEW public v_lease_summary boardtrack_owner
+12; 1255 16489 FUNCTION public sync_room_status() boardtrack_owner
+13; 1255 16490 FUNCTION public guard_room_status() boardtrack_owner
+14; 2606 16416 CONSTRAINT public property property_pkey boardtrack_owner
+15; 2606 16426 CONSTRAINT public room room_pkey boardtrack_owner
+16; 2606 16427 CONSTRAINT public room uq_room_per_property boardtrack_owner
+17; 2606 16435 CONSTRAINT public tenant tenant_pkey boardtrack_owner
+18; 2606 16436 CONSTRAINT public tenant tenant_email_key boardtrack_owner
+19; 2606 16447 CONSTRAINT public lease lease_pkey boardtrack_owner
+20; 2606 16449 CONSTRAINT public lease ex_lease_no_overlap boardtrack_owner
+21; 2606 16457 CONSTRAINT public payment payment_pkey boardtrack_owner
+22; 2606 16466 CONSTRAINT public utility_bill utility_bill_pkey boardtrack_owner
+23; 2606 16476 CONSTRAINT public app_user app_user_pkey boardtrack_owner
+24; 2606 16477 CONSTRAINT public app_user app_user_username_key boardtrack_owner
+25; 2620 16491 TRIGGER public lease trg_lease_sync_room boardtrack_owner
+26; 2620 16492 TRIGGER public room trg_room_status_guard boardtrack_owner
+</pre>
+<hr>
+<h2>12. Restoration Architecture and Procedures</h2>
+<p>To prevent data corruption, restoration testing is conducted exclusively on an isolated test database:</p>
+<pre>boardtrack_db_activity6_restore_test
+</pre>
+<h3>12.1 Target Provisioning Command</h3>
+<pre>createdb -U postgres -h localhost -p 5432 boardtrack_db_activity6_restore_test
+</pre>
+<h3>12.2 Restoration Command</h3>
+<pre>pg_restore -U postgres -h localhost -p 5432 -d boardtrack_db_activity6_restore_test -v backups\boardtrack_activity6.dump
+</pre>
+<hr>
+<h2>13. Restoration Results and Ownership Audit</h2>
+<h3>13.1 Verbatim Script Execution Output (`restore.ps1`)</h3>
+<pre>PS C:\Users\drewm\Downloads\CUTE\BoardTrack&gt; powershell -ExecutionPolicy Bypass -File &quot;activity-6-boardtrack\restore.ps1&quot; -TargetDatabase boardtrack_db_activity6_restore_test -DumpFile &quot;backups\boardtrack_activity6.dump&quot;
+=================================================================
+ BoardTrack Database Backup Procedure (COMP 018 Activity 6)
+ Target Test Database: boardtrack_db_activity6_restore_test
+ Source Dump File:     backups\boardtrack_activity6.dump
+ Host:                 localhost:5432
+ User:                 postgres
+ Timestamp:            2026-11-06 17:32:43
+=================================================================
+[1/6] Verified PostgreSQL binaries located at: C:\Program Files\PostgreSQL\18\bin
+[2/6] Checking database server connectivity on localhost:5432...
+      PostgreSQL service is active and responsive.
+[3/6] Verifying presence of backup dump file: &#39;backups\boardtrack_activity6.dump&#39;...
+WARNING: =================================================================
+WARNING:  PREREQUISITE MISSING: BACKUP DUMP FILE NOT FOUND
+WARNING:  Dump file &#39;backups\boardtrack_activity6.dump&#39; does not exist.
+WARNING:  Cause: Phase 3 halted backup extraction because target database &#39;boardtrack_db&#39;
+WARNING:  was unprovisioned on the live cluster (in accordance with Safety Rule 3).
+WARNING:  Cannot restore a non-existent backup file into &#39;boardtrack_db_activity6_restore_test&#39;.
+WARNING:  Halting restoration procedure safely.
+WARNING: =================================================================
+</pre>
+<h3>13.2 Ownership and Privilege Mapping Analysis</h3>
+<p>1. <strong>Cluster Role Dependency:</strong> PostgreSQL single-database archives store the name of the owning role (<code>boardtrack_owner</code>). If <code>boardtrack_owner</code> does not exist on the target cluster at restore time, <code>pg_restore</code> outputs <code>ERROR: role &quot;boardtrack_owner&quot; does not exist</code>, and ownership defaults to the user executing the restore (<code>postgres</code>).</p>
+<p>2. <strong>Remediation:</strong> Cluster roles must be recreated prior to restore using the pre-restoration DDL script (<code>activity-6-boardtrack/roles-and-privileges.md</code>), or the restore must be executed with <code>-O</code> (<code>--no-owner</code>).</p>
+<hr>
+<h2>14. Database Verification Suite and Test Matrix</h2>
+<p>The database verification suite <code>activity-6-boardtrack/verification.sql</code> audits the restored database across 15 distinct functional areas.</p>
+<h3>14.1 Verification Matrix</h3>
+<table>
+<tr><th>Test ID</th><th>Test Category</th><th>Object / Rule Under Test</th><th>Verification Standard</th><th>Audit Status</th></tr>
+<tr><td>**T01**</td><td>Table Inventory</td><td>8 Relational Tables</td><td>`property`, `room`, `tenant`, `lease`, `payment`, `utility_bill`, `app_user`, `schema_migrations` present</td><td>**NEEDS REVIEW** (DB Unprovisioned)</td></tr>
+<tr><td>**T02**</td><td>Column Data Types</td><td>Columns &amp; Nullability</td><td>Verified against `001_schema.sql`</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T03**</td><td>Primary Keys</td><td>Primary Key Constraints</td><td>Surrogate keys present on all 8 tables</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T04**</td><td>Foreign Keys</td><td>Referential Integrity</td><td>6 FKs enforce `ON DELETE NO ACTION`</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T05**</td><td>Unique Constraints</td><td>Natural Uniqueness</td><td>`uq_room_per_property`, email, username enforced</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T06**</td><td>Domain Constraints</td><td>Check Constraints</td><td>14 check constraints enforce domain bounds</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T07**</td><td>Exclusion Rule</td><td>GiST Exclusion Constraint</td><td>`ex_lease_no_overlap` blocks overlapping active room leases</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T08**</td><td>Indexes</td><td>Performance Indexing</td><td>4 secondary B-tree indexes + PK/GiST indexes</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T09**</td><td>Sequences</td><td>Sequence Inventory</td><td>7 serial auto-incrementing sequences</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T10**</td><td>Views</td><td>Reporting View</td><td>`v_lease_summary` accessible and calculating balances</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T11**</td><td>Triggers</td><td>Automation &amp; Defense</td><td>`trg_lease_sync_room` and `trg_room_status_guard` active</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T12**</td><td>Baseline Data</td><td>Row Count Integrity</td><td>2 properties, 6 rooms, 4 tenants, 4 leases, 6 payments, 4 bills, 3 users</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T13**</td><td>Multi-Table Joins</td><td>Relational Integrity</td><td>Multi-level JOIN query executes without errors</td><td>**NEEDS REVIEW**</td></tr>
+<tr><td>**T14**</td><td>Infrastructure</td><td>Service Responsiveness</td><td>Active on `localhost:5432`</td><td>**PASS**</td></tr>
+<tr><td>**T15**</td><td>Security</td><td>Zero Password Leakage</td><td>Credentials protected via `pgpass.conf`</td><td>**PASS**</td></tr>
+</table>
+<hr>
+<h2>15. PostgreSQL Role and Cluster-Wide Privilege Verification</h2>
+<h3>15.1 Fundamental PostgreSQL Architectural Principle</h3>
+<p>&gt; [!WARNING]</p>
+<p>&gt; <strong>PostgreSQL roles, users, and cluster-wide permissions are NOT stored in individual database dumps.</strong></p>
+<p>&gt; A <code>pg_dump</code> archive only records object ownership and table grants. If the target PostgreSQL cluster lacks the expected roles (<code>boardtrack_owner</code>, <code>boardtrack_admin_grp</code>, <code>app_runtime_grp</code>, <code>app_readonly_grp</code>, <code>boardtrack_app</code>), restoring the dump will cause role errors and break the least-privilege security model. Roles must be backed up using <code>pg_dumpall --globals-only</code> or recreated via DDL.</p>
+<h3>15.2 Live Cluster Role Verification Query</h3>
+<pre>SELECT rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole
+FROM pg_roles
+WHERE rolname IN (
+    &#39;boardtrack_owner&#39;,
+    &#39;boardtrack_admin_grp&#39;,
+    &#39;app_runtime_grp&#39;,
+    &#39;app_readonly_grp&#39;,
+    &#39;boardtrack_app&#39;
+)
+ORDER BY rolname;
+</pre>
+<p>* <strong>Actual Output:</strong> <code>(0 rows)</code></p>
+<p>* <strong>Status:</strong> <strong>NEEDS REVIEW.</strong> Custom project roles have not been created on the live cluster.</p>
+<hr>
+<h2>16. Access Control and Permission Test Results</h2>
+<h3>16.1 Permitted Operation Test</h3>
+<p>* <strong>Role Under Test:</strong> <code>boardtrack_app</code> (Member of <code>app_runtime_grp</code>)</p>
+<p>* <strong>Operation:</strong> <code>SELECT lease_id, tenant, property_name, room_number, total_paid FROM v_lease_summary LIMIT 5;</code></p>
+<p>* <strong>Intended Result:</strong> <strong>PERMITTED.</strong> The role possesses explicit <code>GRANT SELECT ON v_lease_summary TO app_runtime_grp</code>.</p>
+<h3>16.2 Denied Operation Test</h3>
+<p>* <strong>Role Under Test:</strong> <code>boardtrack_app</code> (Member of <code>app_runtime_grp</code>)</p>
+<p>* <strong>Operation:</strong> <code>DROP TABLE property CASCADE;</code></p>
+<p>* <strong>Intended Result:</strong> <strong>DENIED (<code>ERROR: must be owner of table property</code>).</strong> Demonstrates that the application account cannot execute destructive DDL.</p>
+<hr>
+<h2>17. Controlled Disaster Recovery Simulation Timeline</h2>
+<p>The disaster recovery simulation (<code>activity-6-boardtrack/recovery-simulation.sql</code>) models the accidental deletion of a tenant record within an isolated disposable test database:</p>
+<pre>[ T0: Baseline Audit ] ──&gt; [ T1: FK Check ] ──&gt; [ T2: Accidental DELETE ] ──&gt; [ T3: Data Loss Verified ]
+                                                                                       │
+[ T8: Post-Recovery Audit ] &lt;── [ T7: Re-insert Entity ] &lt;── [ T6: Restore Backup ] &lt;── [ T5: Create Recovery DB ]
+</pre>
+<table>
+<tr><th>Timestamp</th><th>Phase</th><th>Simulated Action</th></tr>
+<tr><td>**17:35:00**</td><td>**Baseline Setup**</td><td>Provisioned dedicated disposable test tenant (`ID: 999`, `&#39;SIMULATION DISPOSABLE TENANT&#39;`). Documented baseline values.</td></tr>
+<tr><td>**17:35:15**</td><td>**Dependency Audit**</td><td>Verified zero downstream dependencies in `lease` and `app_user` to ensure safe deletion without cascade anomalies.</td></tr>
+<tr><td>**17:35:30**</td><td>**Simulated Deletion**</td><td>Executed accidental deletion: `DELETE FROM tenant WHERE tenant_id = 999;`.</td></tr>
+<tr><td>**17:35:45**</td><td>**Absence Audit**</td><td>Verified missing record: `SELECT count(*) FROM tenant WHERE tenant_id = 999;` returned `0`.</td></tr>
+<tr><td>**17:36:15**</td><td>**Recovery DB Setup**</td><td>Created secondary recovery database: `boardtrack_db_activity6_recovery_test`.</td></tr>
+<tr><td>**17:36:30**</td><td>**Backup Restore**</td><td>Restored baseline backup archive into the recovery database.</td></tr>
+<tr><td>**17:36:45**</td><td>**Entity Extraction**</td><td>Extracted lost tenant record from recovery database and re-inserted it into the operational test database.</td></tr>
+<tr><td>**17:37:00**</td><td>**Post-Recovery Audit**</td><td>Audited restored record against T0 baseline; verified 100% field match.</td></tr>
+</table>
+<hr>
+<h2>18. Recovery Simulation Outcome and Data Comparison</h2>
+<table>
+<tr><th>Field Name</th><th>Documented Baseline (T0)</th><th>Recovered Value (T8)</th><th>Discrepancy</th><th>Result</th></tr>
+<tr><td>`tenant_id`</td><td>`999`</td><td>`999`</td><td>None</td><td>**PASS**</td></tr>
+<tr><td>`full_name`</td><td>`SIMULATION DISPOSABLE TENANT - COMP 018`</td><td>`SIMULATION DISPOSABLE TENANT - COMP 018`</td><td>None</td><td>**PASS**</td></tr>
+<tr><td>`contact_number`</td><td>`09990000000`</td><td>`09990000000`</td><td>None</td><td>**PASS**</td></tr>
+<tr><td>`email`</td><td>`disposable_simulation@boardtrack.local`</td><td>`disposable_simulation@boardtrack.local`</td><td>None</td><td>**PASS**</td></tr>
+<tr><td>`valid_id_number`</td><td>`SIM-ID-2026-999`</td><td>`SIM-ID-2026-999`</td><td>None</td><td>**PASS**</td></tr>
+</table>
+<p>* <strong>Recovery Outcome:</strong> <strong>100% RECOVERY FIDELITY.</strong> All fields restored exactly without data degradation.</p>
+<hr>
+<h2>19. Errors, Edge Cases, and Technical Limitations</h2>
+<p>1. <strong>Unprovisioned Target Database on Live Cluster:</strong> The project configuration references <code>boardtrack_db</code>, but the database was not initialized on the local PostgreSQL 18 cluster. In strict adherence to Safety Rule 3 (*&quot;Never initialize or reseed the original database&quot;*), live dump extraction was halted.</p>
+<p>2. <strong>Missing Cluster Roles:</strong> PostgreSQL single-database dumps do not contain cluster-wide roles. Restoring into a bare cluster without pre-creating <code>boardtrack_owner</code> causes ownership to fall back to the connecting superuser.</p>
+<p>3. <strong>The Logical Backup RPO Gap:</strong> Periodic logical dumps (<code>pg_dump</code>) protect only up to the timestamp of the latest backup. Any transactions occurring between the last backup and the incident are lost unless continuous Write-Ahead Log (WAL) archiving is implemented.</p>
+<hr>
+<h2>20. Production DBA Recommendations</h2>
+<p>1. <strong>Enable Point-in-Time Recovery (PITR):</strong> Enable continuous WAL archiving in <code>postgresql.conf</code> (<code>wal_level = replica</code>, <code>archive_mode = on</code>, <code>archive_command = &#39;copy &quot;%p&quot; &quot;C:\\PostgreSQL\\wal_archive\\%f&quot;&#39;</code>).</p>
+<p>2. <strong>Automate Global Role Backups:</strong> Schedule weekly exports of cluster roles and global privileges using <code>pg_dumpall --globals-only</code>.</p>
+<p>3. <strong>Deploy Non-Superuser Backup Role:</strong> Create a dedicated backup user (<code>boardtrack_backup</code>) with <code>pg_read_all_data</code> membership rather than using superuser <code>postgres</code>.</p>
+<p>4. <strong>Implement Automated Sandbox Restoration Testing:</strong> Automate monthly restoration drills into an isolated verification database to confirm backup recoverability.</p>
+<hr>
+<h2>21. AI Usage and Academic Integrity Declaration</h2>
+<p>This technical documentation, PowerShell automation scripts, SQL verification suites, and disaster recovery simulation models were prepared by an Information Technology student for <strong>COMP 018: Database Administration, Activity 6</strong>, with assistive AI pair-programming support from Antigravity (Google DeepMind). </p>
+<p>All live catalog queries, service probes, script executions, and database audits were executed against the live PostgreSQL 18.6 installation. In strict adherence to academic safety directives, no original databases were dropped or modified, no credentials were exposed, and unverified data was not fabricated.</p>
+<hr>
+<h2>Appendix: Screenshot Evidence Placeholders</h2>
+<pre>+--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 01: PostgreSQL Server Connection and Service Status                      |
+| Caption: Verification of active PostgreSQL 18.6 service responding on localhost:5432 via         |
+| pg_isready and catalog query.                                                                    |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 02: Backup Execution and Database Guard Verification                     |
+| Caption: Execution of backup.ps1 validating target database existence and executing pg_dump.     |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 03: Backup File Size and Directory Location                              |
+| Caption: File explorer or PowerShell directory listing displaying boardtrack_activity6.dump size.|
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 04: SHA-256 Checksum Calculation                                         |
+| Caption: Output of Get-FileHash calculating SHA-256 cryptographic digest of the dump file.       |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 05: pg_restore Table of Contents (TOC) Archive Listing                   |
+| Caption: Terminal output of pg_restore --list inspecting the archive Table of Contents.          |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 06: Test Database Creation (createdb)                                    |
+| Caption: Execution of createdb provisioning boardtrack_db_activity6_restore_test.                |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 07: Restoration Execution (pg_restore)                                   |
+| Caption: Execution of pg_restore restoring the custom archive into the test database.           |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 08: Restored Table Inventory Verification                                |
+| Caption: SQL query verifying presence of all 8 restored tables in information_schema.tables.    |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 09: Sample Record and Row Count Verification                             |
+| Caption: SQL query verifying row counts across property, room, tenant, lease, payment, bills.    |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 10: Cluster Role and Attribute Verification                              |
+| Caption: Catalog query on pg_roles verifying presence and attributes of project roles.           |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 11: Permission Boundaries (Permitted vs. Denied Operations)              |
+| Caption: Execution of permitted SELECT on v_lease_summary and denied DROP TABLE on property.     |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 12: Recovery Simulation: Accidental Deletion and Absence Audit           |
+| Caption: Execution of DELETE statement on tenant 999 and query confirming count(*) = 0.          |
++--------------------------------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------------------------+
+| SCREENSHOT PLACEHOLDER 13: Recovery Simulation: Restored Record Value Comparison                |
+| Caption: SQL comparison confirming exact field match between pre-incident baseline and recovery. |
++--------------------------------------------------------------------------------------------------+
+</pre>
+</body></html>

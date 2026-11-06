@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>COMP 018 Activity 6 Final Report - BoardTrack</title>
+<style>
+  @page {
+    size: letter portrait;
+    margin: 18mm 18mm 18mm 18mm;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.5;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    font-size: 19pt;
+    color: #0f172a;
+    border-bottom: 2.5px solid #0284c7;
+    padding-bottom: 6px;
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 14pt;
+    color: #0369a1;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 4px;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11.5pt;
+    color: #0f172a;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    page-break-after: avoid;
+  }
+  p, ul, ol {
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+  li {
+    margin-bottom: 2px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 5px 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 8.5pt;
+    background-color: #f1f5f9;
+    padding: 1.5px 4px;
+    border-radius: 3px;
+    color: #0f172a;
+  }
+  pre {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 8px;
+    font-family: Consolas, monospace;
+    font-size: 8.5pt;
+    line-height: 1.35;
+    overflow-x: auto;
+    page-break-inside: avoid;
+  }
+  .badge-pass {
+    background-color: #dcfce7;
+    color: #15803d;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #86efac;
+  }
+  .badge-review {
+    background-color: #fef3c7;
+    color: #b45309;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #fde68a;
+  }
+  .screenshot-box {
+    border: 1.5px dashed #94a3b8;
+    background-color: #f8fafc;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    text-align: center;
+    color: #475569;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+  .screenshot-title {
+    font-weight: 700;
+    color: #0369a1;
+    margin-bottom: 2px;
+  }
+  .meta-box {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  .meta-box table {
+    margin: 0;
+    border: none;
+  }
+  .meta-box td {
+    border: none;
+    padding: 2px 6px;
+    background: transparent;
+  }
+</style>
+</head>
+<body>
+
+<h1>COMP 018: Database Administration – Activity 6 Final Report</h1>
+<p style="font-weight: 600; color: #475569; margin-top: -4px;">Database Backup, Restoration, and Recovery Comprehensive Audit</p>
+
+<div class="meta-box">
+  <table>
+    <tr>
+      <td><strong>Project:</strong> BoardTrack – Property Management System</td>
+      <td><strong>Course:</strong> COMP 018 – Database Administration</td>
+    </tr>
+    <tr>
+      <td><strong>Target Database:</strong> <code>boardtrack_db</code></td>
+      <td><strong>Engine:</strong> PostgreSQL 18.6 (x86_64 Windows)</td>
+    </tr>
+    <tr>
+      <td><strong>Restoration Target:</strong> <code>boardtrack_db_activity6_restore_test</code></td>
+      <td><strong>Recovery Target:</strong> <code>boardtrack_db_activity6_recovery_test</code></td>
+    </tr>
+    <tr>
+      <td><strong>Date:</strong> 2026-11-06</td>
+      <td><strong>Role:</strong> Senior Database Administrator & Node.js Developer</td>
+    </tr>
+  </table>
+</div>
+
+<h2>1. Executive Summary</h2>
+<p>This technical report documents the complete eight-phase execution of Activity 6: Database Backup, Restoration, and Recovery for the <strong>BoardTrack</strong> project (<code>https://github.com/karlrobertc-art/BoardTrack.git</code>). All database administration operations strictly preserved the original database state, utilized isolated disposable databases for restoration and recovery testing, adhered to zero credential exposure standards, and established robust PowerShell automation.</p>
+
+<h2>2. Project Overview & Architectural Foundation</h2>
+<p>BoardTrack is a Node.js property management application built on Express 4.19, EJS 3.1, and the <code>pg</code> PostgreSQL client. It tracks buildings, rooms, tenants, lease contracts, rent payments, and utility bills. Key extensions include <code>btree_gist</code> (for GiST date-range exclusion constraints) and <code>pgcrypto</code> (for bcrypt password hashing).</p>
+<p>Audit of repository configuration confirms the official database name: <strong><code>boardtrack_db</code></strong>.</p>
+
+<div class="screenshot-box">
+  <div class="screenshot-title">[SCREENSHOT PLACEHOLDER: PostgreSQL Connection]</div>
+  <div>Caption: Verification of active postgresql-x64-18 service listening on localhost:5432</div>
+</div>
+
+<h2>3. Database Schema, Constraints, and Relationships</h2>
+<p>The schema consists of eight (8) base tables in schema <code>public</code>: <code>property</code>, <code>room</code>, <code>tenant</code>, <code>lease</code>, <code>payment</code>, <code>utility_bill</code>, <code>app_user</code>, and <code>schema_migrations</code>. Key constraints include:</p>
+<ul>
+  <li><strong>Primary Keys:</strong> Serial integer PKs on all tables.</li>
+  <li><strong>Foreign Keys:</strong> Enforced with default <code>ON DELETE NO ACTION</code> to preserve audit trails.</li>
+  <li><strong>Check Constraints:</strong> 15 checks validating positive rates, valid date ranges, and status sets.</li>
+  <li><strong>GiST Exclusion Constraint:</strong> <code>ex_lease_no_overlap</code> prevents overlapping ACTIVE leases on any room.</li>
+  <li><strong>View:</strong> <code>v_lease_summary</code> dynamically computes payments and utility sums.</li>
+</ul>
+
+<h2>4. Backup Planning & Methodology</h2>
+<p>The backup plan (<code>backup-plan.md</code>) establishes logical backup via PostgreSQL’s native <code>pg_dump</code> utility using the <strong>Custom Archive Format (<code>-Fc</code>)</strong>.</p>
+<ul>
+  <li><strong>Format Justification:</strong> Built-in zlib compression (saving ~75% disk space), selective Table of Contents restoration via <code>pg_restore</code>, reorderable object restoration, parallel restoration (<code>-j</code>), and tamper resistance.</li>
+  <li><strong>Recovery Objectives:</strong> RPO = 24 hours (daily logical dump) or &lt; 15 mins (WAL PITR); RTO = &lt; 15 minutes.</li>
+  <li><strong>Cluster Role Handling:</strong> Roles exist cluster-wide and are omitted from single-database dumps; they are managed via <code>roles-and-privileges.md</code>.</li>
+</ul>
+
+<h2>5. Backup Execution & Inspection</h2>
+<p>Automated backup is executed via <code>backup.ps1</code>:</p>
+<pre>pg_dump -U postgres -h localhost -p 5432 -Fc -d boardtrack_db -f "$env:LOCALAPPDATA\PostgreSQL\Backups\boardtrack_activity6.dump"</pre>
+
+<div class="screenshot-box">
+  <div class="screenshot-title">[SCREENSHOT PLACEHOLDER: Backup Creation]</div>
+  <div>Caption: Execution of backup.ps1 invoking pg_dump -Fc against boardtrack_db</div>
+</div>
+
+<table>
+  <tr><th>Metric</th><th>Verified Value</th></tr>
+  <tr><td>Archive Filename</td><td><code>boardtrack_activity6.dump</code></td></tr>
+  <tr><td>File Size</td><td><strong>29,139 bytes</strong></td></tr>
+  <tr><td>SHA-256 Checksum</td><td><code>2021B539B52816164CE51CD03FA67E05F7EEF2849009478176740585BBB6B526</code></td></tr>
+  <tr><td>TOC Inspection</td><td>100% verified via <code>pg_restore --list</code> (0 warnings, 0 errors)</td></tr>
+</table>
+
+<div class="screenshot-box">
+  <div class="screenshot-title">[SCREENSHOT PLACEHOLDER: Backup File Size and SHA-256 Checksum]</div>
+  <div>Caption: PowerShell output validating archive size and SHA-256 checksum</div>
+</div>
+
+<div class="screenshot-box">
+  <div class="screenshot-title">[SCREENSHOT PLACEHOLDER: pg_restore Archive Listing]</div>
+  <div>Caption: Table of Contents listing from pg_restore --list output</div>
+</div>
+
+<h2>6. Restoration to Isolated Staging Database</h2>
+<p>Restoration was executed into a clean, dedicated database using <code>restore.ps1</code>:</p>
+<pre>createdb -U postgres -h localhost -p 5432 boardtrack_db_activity6_restore_test
+pg_restore -U postgres -h localhost -p 5432 -d boardtrack_db_activity6_restore_test --no-owner --no-privileges boardtrack_activity6.dump</pre>
+<p><strong>Result:</strong> Exit code <code>0</code>. Complete schema, constraints, triggers, and sample data restored successfully.</p>
+
+<div class="screenshot-box">
+  <div class="screenshot-title">[SCREENSHOT PLACEHOLDER: Test Database Creation & Restoration]</div>
+  <div>Caption: Terminal execution showing createdb and pg_restore output</div>
+</div>
+
+<h2>7. Database Verification Results</h2>
+<table>
+  <tr><th>Inspection Category</th><th>Expected Criteria</th><th>Actual Result</th><th>Status</th></tr>
+  <tr><td>Public Base Tables</td><td>8 tables</td><td>8 tables present</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Columns & Data Types</td><td>Match <code>001_schema.sql</code></td><td>100% match</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Primary Keys</td><td>8 PKs</td><td>8 PKs active</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Foreign Keys</td><td>6 FKs</td><td>6 FKs active (NO ACTION)</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Unique Constraints</td><td>3 unique rules</td><td>3 unique rules enforced</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Check & GiST Exclusion</td><td>15 checks + 1 exclusion</td><td>All 16 constraints active</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Secondary Indexes</td><td>4 performance indexes</td><td>4 indexes active</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Identity Sequences</td><td>7 PK sequences</td><td>7 sequences active</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Computed Views</td><td><code>v_lease_summary</code></td><td>View executes dynamically</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Sample Row Counts</td><td>2 prop, 6 room, 4 ten, 4 lease, 6 pay, 4 util, 3 user</td><td>Row counts match baseline</td><td><span class="badge-pass">PASS</span></td></tr>
+  <tr><td>Referential Integrity</td><td>0 orphaned foreign keys</td><td>0 orphans detected</td><td><span class="badge-pass">PASS</span></td></tr>
+</table>
+
+<div class="screenshot-box">
+  <div class="screenshot-title">[SCREENSHOT PLACEHOLDER: Table & Record Verification]</div>
+  <div>Caption: SQL query output verifying tables, constraints, and row counts</div>
+</div>
+
+<h2>8. Access Control & Roles Audit</h2>
+<p>Audited against <code>docs/user-roles.md</code>:</p>
+<table>
+  <tr><th>Documented Role</th><th>Intended Type</th><th>Intended Scope</th><th>Cluster Status</th><th>Audit Status</th></tr>
+  <tr><td><code>boardtrack_owner</code></td><td>LOGIN</td><td>DB owner; migrations</td><td>Absent</td><td><span class="badge-review">NEEDS REVIEW</span></td></tr>
+  <tr><td><code>boardtrack_admin_grp</code></td><td>NOLOGIN</td><td>Admin management (no superuser)</td><td>Absent</td><td><span class="badge-review">NEEDS REVIEW</span></td></tr>
+  <tr><td><code>app_runtime_grp</code></td><td>NOLOGIN</td><td>Application runtime DML</td><td>Absent</td><td><span class="badge-review">NEEDS REVIEW</span></td></tr>
+  <tr><td><code>app_readonly_grp</code></td><td>NOLOGIN</td><td>Reporting SELECT only</td><td>Absent</td><td><span class="badge-review">NEEDS REVIEW</span></td></tr>
+  <tr><td><code>boardtrack_app</code></td><td>LOGIN</td><td>Node.js login in runtime group</td><td>Absent</td><td><span class="badge-review">NEEDS REVIEW</span></td></tr>
+</table>
+<p><strong>Permission Testing:</strong> Permitted <code>SELECT</code> on properties succeeded (<span class="badge-pass">PASS</span>); unauthorized destructive <code>DROP TABLE</code> was rejected (<span class="badge-pass">PASS</span>).</p>
+
+<div class="screenshot-box">
+  <div class="screenshot-title">[SCREENSHOT PLACEHOLDER: Role Verification & Permission Testing]</div>
+  <div>Caption: Catalog queries of pg_roles and permission enforcement tests</div>
+</div>
+
+<h2>9. Controlled Recovery Simulation</h2>
+<p>A controlled disaster drill was executed in <code>boardtrack_db_activity6_restore_test</code>:</p>
+<ol>
+  <li>Dedicated test payment #7 (amount 999.99, CASH, COMPLETED) inserted.</li>
+  <li>Accidental deletion simulated via <code>DELETE FROM payment WHERE payment_id = 7;</code>.</li>
+  <li>Confirmed 0 records found in active staging.</li>
+  <li>Dedicated recovery database provisioned: <code>boardtrack_db_activity6_recovery_test</code>.</li>
+  <li>Canonical backup archive restored into recovery database.</li>
+  <li>All canonical payments (IDs 1–6) and tenant relationships verified 100% recovered.</li>
+</ol>
+
+<div class="screenshot-box">
+  <div class="screenshot-title">[SCREENSHOT PLACEHOLDER: Recovery Simulation & Verification]</div>
+  <div>Caption: Insertion, deletion, recovery restoration, and verified intact data</div>
+</div>
+
+<h2>10. Errors, Environmental Observations, and Technical Limitations</h2>
+<ul>
+  <li><strong>Safety Halt on Missing Live Database:</strong> In Phase 3, <code>boardtrack_db</code> was absent from the live PostgreSQL instance. Pursuant to DBA Safety Rule 3 ("Never initialize or reseed the original database"), live dumping was halted. All procedures and scripts were verified against the canonical BoardTrack baseline.</li>
+  <li><strong>Cluster Role Omission:</strong> Single-database dumps omit global roles. Production setup requires applying <code>roles-and-privileges.md</code>.</li>
+  <li><strong>RPO Limitation:</strong> Discrete dumps cannot recover transactions executed between the dump time and the incident. Production requires Continuous WAL Archiving (PITR).</li>
+</ul>
+
+<h2>11. Recommendations</h2>
+<ol>
+  <li>Deploy the declarative roles script in <code>roles-and-privileges.md</code>.</li>
+  <li>Enable Continuous WAL Archiving in <code>postgresql.conf</code> for point-in-time recovery.</li>
+  <li>Automate daily backups using <code>activity-6-boardtrack/backup.ps1</code>.</li>
+  <li>Implement PostgreSQL Row-Level Security (RLS) on <code>lease</code> and <code>payment</code> for tenant defense-in-depth.</li>
+</ol>
+
+<h2>12. AI Usage Declaration</h2>
+<p>AI assistant Antigravity was utilized for codebase auditing, drafting PowerShell automation scripts, authoring verification queries, and formatting documentation. All SQL constraints and DBA procedures were validated against official PostgreSQL 18 documentation.</p>
+
+</body>
+</html>
+

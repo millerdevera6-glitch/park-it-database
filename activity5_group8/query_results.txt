@@ -1,0 +1,233 @@
+=============================================================================
+Activity 5: Database Maintenance and Monitoring Query Results
+Project: Campus Canteen Pre-Order and Queue Management System (bwisIT Solutions)
+Database Engine: PostgreSQL 18.6 on x86_64-windows
+Target Database: canteen_db (localhost:5432)
+Execution Date: 2026-11-06
+=============================================================================
+
+-----------------------------------------------------------------------------
+0. Target Database Reachability Verification
+Command: psql -h localhost -p 5432 -U postgres -d canteen_db -c "SELECT 1;"
+-----------------------------------------------------------------------------
+psql: error: connection to server at "localhost" (::1), port 5432 failed: FATAL:  database "canteen_db" does not exist
+
+[Note: Target database 'canteen_db' specified in application.properties and .env.example
+has not been provisioned on the PostgreSQL 18 instance. Per Rule 2 & 6, no new database
+was created and no migrations were executed. Cluster-level and catalog queries below
+were executed against the active PostgreSQL server instance.]
+
+
+-----------------------------------------------------------------------------
+A. Database Health Checks
+-----------------------------------------------------------------------------
+
+Query A.1: Database Name, Server Version, and Database Size
+SQL:
+SELECT current_database() AS database_name,
+       version() AS server_version,
+       pg_size_pretty(pg_database_size(current_database())) AS database_size;
+
+Output:
+ database_name |                             server_version                              | database_size 
+---------------+-------------------------------------------------------------------------+---------------
+ postgres      | PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit | 8014 kB
+(1 row)
+
+
+Query A.2: Verify Existence of Target Project Database (canteen_db)
+SQL:
+SELECT datname, pg_size_pretty(pg_database_size(datname)) AS db_size
+FROM pg_database
+WHERE datname = 'canteen_db';
+
+Output:
+ datname | db_size 
+---------+---------
+(0 rows)
+
+
+Query A.3: Public Base Table Count
+SQL:
+SELECT count(*) AS public_tables
+FROM information_schema.tables
+WHERE table_schema = 'public'
+  AND table_type = 'BASE TABLE';
+
+Output:
+ public_tables 
+---------------
+             0
+(1 row)
+
+[Note: Project schema defines 7 tables: student, vendor, menu_item, customer_order,
+order_item, queue_entry, notification.]
+
+
+Query A.4: Public Sequence Count
+SQL:
+SELECT count(*) AS public_sequences
+FROM information_schema.sequences
+WHERE sequence_schema = 'public';
+
+Output:
+ public_sequences 
+------------------
+                0
+(1 row)
+
+
+Query A.5: Active Sessions Grouped by State
+SQL:
+SELECT state, count(*) AS sessions
+FROM pg_stat_activity
+WHERE datname = current_database()
+GROUP BY state;
+
+Output:
+ state  | sessions 
+--------+----------
+ active |        1
+(1 row)
+
+
+-----------------------------------------------------------------------------
+B. Database Activity and User Roles
+-----------------------------------------------------------------------------
+
+Query B.1: Existing Cluster Roles and Administrative Privileges
+SQL:
+SELECT rolname,
+       rolcanlogin,
+       rolsuper,
+       rolcreatedb,
+       rolcreaterole
+FROM pg_roles
+ORDER BY rolname;
+
+Output:
+           rolname           | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole 
+-----------------------------+-------------+----------+-------------+---------------
+ pg_checkpoint               | f           | f        | f           | f
+ pg_create_subscription      | f           | f        | f           | f
+ pg_database_owner           | f           | f        | f           | f
+ pg_execute_server_program   | f           | f        | f           | f
+ pg_maintain                 | f           | f        | f           | f
+ pg_monitor                  | f           | f        | f           | f
+ pg_read_all_data            | f           | f        | f           | f
+ pg_read_all_settings        | f           | f        | f           | f
+ pg_read_all_stats           | f           | f        | f           | f
+ pg_read_server_files        | f           | f        | f           | f
+ pg_signal_autovacuum_worker | f           | f        | f           | f
+ pg_signal_backend           | f           | f        | f           | f
+ pg_stat_scan_tables         | f           | f        | f           | f
+ pg_use_reserved_connections | f           | f        | f           | f
+ pg_write_all_data           | f           | f        | f           | f
+ pg_write_server_files       | f           | f        | f           | f
+ postgres                    | t           | t        | t           | t
+(17 rows)
+
+[Note: Custom project roles designed in db-access-control/01-create-roles.sql
+(canteen_admin, canteen_app, canteen_readonly, canteen_app_grp, canteen_readonly_grp)
+have not been created on the live cluster.]
+
+
+Query B.2: Current Active Sessions
+SQL:
+SELECT pid, usename, client_addr, state, backend_start, query
+FROM pg_stat_activity
+WHERE datname = current_database();
+
+Output:
+  pid  | usename  | client_addr | state  |         backend_start         |                                     query                                     
+-------+----------+-------------+--------+-------------------------------+-------------------------------------------------------------------------------
+ 15264 | postgres | ::1         | active | 2026-11-06 15:51:38.251685+08 | SELECT pid, usename, client_addr, state, backend_start, query ...
+(1 row)
+
+
+-----------------------------------------------------------------------------
+C. Database Logs
+-----------------------------------------------------------------------------
+
+Query C.1: Logging Configuration Parameters
+SQL:
+SELECT current_setting('log_destination') AS log_destination,
+       current_setting('logging_collector') AS logging_collector,
+       current_setting('log_directory') AS log_directory,
+       current_setting('log_filename') AS log_filename;
+
+Output:
+ log_destination | logging_collector | log_directory |          log_filename          
+-----------------+-------------------+---------------+--------------------------------
+ stderr          | on                | log           | postgresql-%Y-%m-%d_%H%M%S.log
+(1 row)
+
+
+Verification C.2: Active Log File Inspection on Disk
+Location: C:\Program Files\PostgreSQL\18\data\current_logfiles
+Content:
+stderr log/postgresql-2026-11-06_140117.log
+
+Excerpt from Active Server Log (C:\Program Files\PostgreSQL\18\data\log\postgresql-2026-11-06_140117.log):
+2026-11-06 14:01:17 +08 LOG:  database system was shut down at 2026-11-06 14:01:08 +08
+2026-11-06 15:50:28 +08 LOG:  checkpoint starting: time
+2026-11-06 15:50:46 +08 LOG:  checkpoint complete: wrote 166 buffers (1.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=18.204 s, sync=0.037 s, total=18.261 s; sync files=50, longest=0.008 s, average=0.001 s; distance=2296 kB, estimate=4429 kB; lsn=0/1EC0228, redo lsn=0/1EC0198
+2026-11-06 15:51:20 +08 FATAL:  database "canteen_db" does not exist
+2026-11-06 15:51:38 +08 ERROR:  relation "public.student" does not exist
+2026-11-06 15:52:01 +08 ERROR:  relation "public.student" does not exist at character 87
+2026-11-06 15:52:01 +08 STATEMENT:  EXPLAIN (ANALYZE, BUFFERS) SELECT student_id, full_name, email, role, created_at FROM public.student LIMIT 10;
+
+
+-----------------------------------------------------------------------------
+D. Database Maintenance
+-----------------------------------------------------------------------------
+
+Query D.1: Existing Table Statistics
+SQL:
+SELECT relname AS table_name,
+       n_live_tup AS estimated_live_rows,
+       n_dead_tup AS estimated_dead_rows,
+       last_vacuum,
+       last_autovacuum,
+       last_analyze,
+       last_autoanalyze
+FROM pg_stat_user_tables
+WHERE schemaname = 'public'
+ORDER BY relname;
+
+Output:
+ table_name | estimated_live_rows | estimated_dead_rows | last_vacuum | last_autovacuum | last_analyze | last_autoanalyze 
+------------+---------------------+---------------------+-------------+-----------------+--------------+------------------
+(0 rows)
+
+
+Operation D.2: Safe ANALYZE on Representative Project Table (student)
+SQL:
+ANALYZE public.student;
+
+Output:
+ERROR:  relation "public.student" does not exist
+
+[Note: Execution confirmed against the active server instance. Operation failed with
+a catalog error because target database tables have not been migrated onto this cluster.]
+
+
+-----------------------------------------------------------------------------
+E. Query Execution Plan
+-----------------------------------------------------------------------------
+
+Query E.1: EXPLAIN (ANALYZE, BUFFERS) on Representative Application Query
+SQL:
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT student_id, full_name, email, role, created_at
+FROM public.student
+LIMIT 10;
+
+Output:
+ERROR:  relation "public.student" does not exist
+LINE 1: ...udent_id, full_name, email, role, created_at FROM public.stu...
+                                                             ^
+
+[Note: The query execution plan could not be computed by the query optimizer
+because the table 'public.student' does not exist in the connected database catalog.]
+

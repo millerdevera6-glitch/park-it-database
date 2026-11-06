@@ -1,0 +1,176 @@
+================================================================================
+ACTIVITY 5: DATABASE MAINTENANCE AND MONITORING — QUERY & DIAGNOSTIC RESULTS
+Target Project: PUP-SPOT — Campus Lost and Found (grp05_lostandfound)
+Database Name : grp05_lostandfounddb
+Engine        : PostgreSQL 18.x (Windows x86_64)
+Inspection Date: 2026-11-06
+================================================================================
+
+--------------------------------------------------------------------------------
+1. SERVER STATUS & CONNECTIVITY VERIFICATION
+--------------------------------------------------------------------------------
+Command Executed:
+  pg_isready -h localhost -p 5432
+
+Result Output:
+  localhost:5432 - accepting connections
+  Exit Code: 0
+
+Command Executed:
+  psql -U postgres -h 127.0.0.1 -p 5432 -w -c "SELECT 1;"
+
+Result Output:
+  psql: error: connection to server at "127.0.0.1", port 5432 failed: fe_sendauth: no password supplied
+  Exit Code: 1
+
+Command Executed:
+  psql -U lostandfound_app -d grp05_lostandfounddb -h 127.0.0.1 -p 5432 -w -c "SELECT 1;"
+
+Result Output:
+  psql: error: connection to server at "127.0.0.1", port 5432 failed: fe_sendauth: no password supplied
+  Exit Code: 1
+
+Diagnostics:
+  PostgreSQL 18 server process is running and actively accepting TCP connections
+  on 127.0.0.1:5432. The cluster configuration (pg_hba.conf) enforces SCRAM-SHA-256
+  authentication for all IPv4/IPv6 client connections. No active credentials or
+  passwords were provided in the project workspace (only .env.example exists).
+
+
+--------------------------------------------------------------------------------
+2. CHECK A: DATABASE HEALTH
+--------------------------------------------------------------------------------
+Inspected System Configuration:
+  Engine Version       : PostgreSQL 18.x
+  Service Name         : postgresql-x64-18
+  Installation Path    : C:\Program Files\PostgreSQL\18
+  Data Directory       : C:\Program Files\PostgreSQL\18\data
+  Configured Database  : grp05_lostandfounddb
+
+Schema Structure Inspection (sql/grp05_lostandfounddb_script.sql):
+  Total Base Tables Defined: 8
+    1. categories (category_id PK, name)
+    2. items (item_id PK, category_id FK, title, description, location_found, date_found, time_found, status)
+    3. lost_reports (report_id PK, report_code UNIQUE, category_id FK, title, description, location_lost, date_lost, time_lost, full_name, student_number, email, phone_number, contact_preference, status, created_at)
+    4. claims (claim_id PK, claim_code UNIQUE, item_id FK, full_name, student_number, email, phone_number, contact_preference, status, created_at)
+    5. potential_matches (match_id PK, report_id FK, item_id FK, similarity_score, created_at)
+    6. item_images (item_image_id PK, item_id FK, storage_key, mime_type, created_at)
+    7. lost_report_images (report_image_id PK, report_id FK, storage_key, mime_type, created_at)
+    8. claim_images (claim_image_id PK, claim_id FK, storage_key, mime_type, created_at)
+
+  Total Serial Sequences Defined: 8 (one per SERIAL primary key column)
+
+Database Health Catalog Query Execution:
+  Queries Prepared:
+    SELECT current_database(), version(), pg_size_pretty(pg_database_size(current_database()));
+    SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+    SELECT state, count(*) FROM pg_stat_activity WHERE datname = current_database() GROUP BY state;
+  Execution Status: PARTIAL (Service running confirmed; SQL execution blocked by SCRAM-SHA-256 password requirement).
+
+
+--------------------------------------------------------------------------------
+3. CHECK B: DATABASE ACTIVITY AND USER ROLES
+--------------------------------------------------------------------------------
+Role Specifications (sql/grp05_lostandfounddb_role_creation_sample_script.sql):
+  Role 1: lostandfound_app
+    - Login Permission   : LOGIN
+    - Superuser          : false
+    - Create Database    : false
+    - Create Role        : false
+    - Schema Grants      : USAGE on schema public
+    - Table Grants       : SELECT, INSERT, UPDATE on all tables in schema public
+    - Table DELETE Grants: DELETE on potential_matches, item_images, lost_report_images, claim_images
+    - Sequence Grants    : USAGE, SELECT on all sequences in schema public
+    - Role Evaluation    : Adheres to least privilege; restricted to application operations.
+
+  Role 2: lostandfound_public
+    - Login Permission   : LOGIN
+    - Superuser          : false
+    - Create Database    : false
+    - Create Role        : false
+    - Database Grants    : CONNECT on grp05_lostandfounddb
+    - Schema Grants      : USAGE on schema public
+    - Table SELECT Grants: categories, items, lost_reports, claims, potential_matches, item_images, lost_report_images
+    - Table INSERT Grants: lost_reports, claims, potential_matches, lost_report_images, claim_images
+    - Table UPDATE Grants: UPDATE (status) on lost_reports
+    - Table DELETE Grants: potential_matches
+    - Sequence Grants    : USAGE, SELECT on primary key sequences
+    - Role Evaluation    : Potentially excessive direct table privileges (INSERT/DELETE on potential_matches) for an unauthenticated public interface role without row-level security.
+
+  Role 3: postgres
+    - Role Type          : System Superuser
+    - Privileges         : rolsuper=true, rolcreatedb=true, rolcreaterole=true
+
+Database Role Catalog Query Execution:
+  Query Prepared:
+    SELECT rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole FROM pg_roles ORDER BY rolname;
+  Execution Status: PARTIAL (Role design evaluated from source scripts; in-database catalog query blocked by password authentication requirement).
+
+
+--------------------------------------------------------------------------------
+4. CHECK C: DATABASE LOGS
+--------------------------------------------------------------------------------
+Configuration Inspection (C:\Program Files\PostgreSQL\18\data\postgresql.conf):
+  Line 488 : log_destination = 'stderr'
+  Line 495 : logging_collector = on
+  Line 501 : #log_directory = 'log'                      (Default: 'log')
+  Line 503 : #log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log' (Default pattern)
+  Line 505 : log_file_mode = 0640
+  Line 605 : log_line_prefix = '%t '
+
+Active Log File Pointer (C:\Program Files\PostgreSQL\18\data\current_logfiles):
+  stderr log/postgresql-2026-11-06_140117.log
+
+File System Inspection:
+  Log File Path: C:\Program Files\PostgreSQL\18\data\log\postgresql-2026-11-06_140117.log
+  File Existence: Confirmed
+  File Size    : 0 bytes
+  Inspection   : The server process started cleanly; no error events or crash traces were logged.
+  Execution Status: PASS (Physical logging configuration and active log files verified).
+
+
+--------------------------------------------------------------------------------
+5. CHECK D: DATABASE MAINTENANCE
+--------------------------------------------------------------------------------
+Maintenance Target:
+  Target Table: public.items (Primary entity for item tracking and search operations)
+  Operation   : ANALYZE public.items;
+  Purpose     : Collects statistics for the PostgreSQL query planner on column data
+                distribution, null fractions, and most common values.
+
+Query Prepared:
+  ANALYZE public.items;
+  SELECT schemaname, relname, last_analyze, last_autoanalyze, last_vacuum, last_autovacuum
+  FROM pg_stat_user_tables
+  WHERE relname = 'items';
+
+Execution Status:
+  PARTIAL (Safe maintenance operation identified and query generated for representative table; live execution blocked due to local credentials not being configured).
+
+
+--------------------------------------------------------------------------------
+6. CHECK E: QUERY EXECUTION PLAN
+--------------------------------------------------------------------------------
+Query Selected:
+  EXPLAIN (ANALYZE, BUFFERS)
+  SELECT item_id, title, description, location_found, date_found, status
+  FROM public.items
+  WHERE status = 'unclaimed'
+  ORDER BY date_found DESC
+  LIMIT 10;
+
+Plan Analysis:
+  Query Type   : Read-only SELECT on representative table 'items'
+  Expected Plan:
+    In a newly deployed or small database environment, the PostgreSQL planner
+    selects a Sequential Scan (Seq Scan on items) followed by a Sort/Limit step.
+    Sequential scans are optimal for small row counts because reading pages
+    directly incurs lower total cost than random access index lookups.
+  Performance Note:
+    Query timings and plans from small development instances do not reflect
+    production workloads where large record volumes warrant Index Scans.
+
+Execution Status:
+  PARTIAL (Representative read-only query formulated; execution plan analysis documented; direct server execution blocked due to missing credentials).
+================================================================================
+

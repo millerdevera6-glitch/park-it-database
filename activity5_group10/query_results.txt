@@ -1,0 +1,119 @@
+Pager usage is off.
+==================================================
+A. DATABASE HEALTH
+==================================================
+--- Check A.1: Database Name, Server Version, and Database Size ---
+        database_name        |                             server_version                              | database_size 
+-----------------------------+-------------------------------------------------------------------------+---------------
+ grp_binarysisters_projectdb | PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit | 8902 kB
+(1 row)
+
+--- Check A.2: Total Public Tables ---
+ public_tables 
+---------------
+             8
+(1 row)
+
+--- Check A.3: Total Public Sequences ---
+ public_sequences 
+------------------
+                7
+(1 row)
+
+--- Check A.4: Current Database Sessions by State ---
+ state  | sessions 
+--------+----------
+ active |        1
+(1 row)
+
+--- Check A.5: Basic Table Statistics ---
+    table_name    | estimated_live_rows | estimated_dead_rows | last_vacuum | last_autovacuum |         last_analyze          | last_autoanalyze 
+------------------+---------------------+---------------------+-------------+-----------------+-------------------------------+------------------
+ customer         |                   0 |                   0 |             |                 |                               | 
+ menu_item        |                   0 |                   0 |             |                 | 2026-11-06 16:13:30.803647+08 | 
+ order_item       |                   0 |                   0 |             |                 |                               | 
+ orders           |                   0 |                   0 |             |                 |                               | 
+ payment          |                   0 |                   0 |             |                 |                               | 
+ reservation      |                   0 |                   0 |             |                 |                               | 
+ restaurant_table |                   0 |                   0 |             |                 |                               | 
+ staff            |                   0 |                   0 |             |                 |                               | 
+(8 rows)
+
+==================================================
+B. DATABASE ACTIVITY AND USER ROLES
+==================================================
+--- Check B.1: Database Roles and Privileges ---
+           rolname           | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole 
+-----------------------------+-------------+----------+-------------+---------------
+ pg_checkpoint               | f           | f        | f           | f
+ pg_create_subscription      | f           | f        | f           | f
+ pg_database_owner           | f           | f        | f           | f
+ pg_execute_server_program   | f           | f        | f           | f
+ pg_maintain                 | f           | f        | f           | f
+ pg_monitor                  | f           | f        | f           | f
+ pg_read_all_data            | f           | f        | f           | f
+ pg_read_all_settings        | f           | f        | f           | f
+ pg_read_all_stats           | f           | f        | f           | f
+ pg_read_server_files        | f           | f        | f           | f
+ pg_signal_autovacuum_worker | f           | f        | f           | f
+ pg_signal_backend           | f           | f        | f           | f
+ pg_stat_scan_tables         | f           | f        | f           | f
+ pg_use_reserved_connections | f           | f        | f           | f
+ pg_write_all_data           | f           | f        | f           | f
+ pg_write_server_files       | f           | f        | f           | f
+ postgres                    | t           | t        | t           | t
+(17 rows)
+
+--- Check B.2: Current Active Sessions and Connection Details ---
+ pid | usename  | application_name | client_addr | state  |         backend_start         |          query           
+-----+----------+------------------+-------------+--------+-------------------------------+--------------------------
+ 888 | postgres | psql             | ::1         | active | 2026-11-06 16:14:19.543605+08 | SELECT pid,             +
+     |          |                  |             |        |                               |        usename,         +
+     |          |                  |             |        |                               |        application_name,+
+     |          |                  |             |        |                               |        
+(1 row)
+
+==================================================
+C. DATABASE LOGS
+==================================================
+--- Check C.1: Logging Configuration Settings ---
+ log_destination | logging_collector | log_directory |          log_filename          
+-----------------+-------------------+---------------+--------------------------------
+ stderr          | on                | log           | postgresql-%Y-%m-%d_%H%M%S.log
+(1 row)
+
+--- Check C.2: Active Log File Inspection (Excerpt from log/postgresql-2026-11-06_140117.log) ---
+2026-11-06 14:01:17 +08 LOG:  database system was shut down at 2026-11-06 14:01:08 +08
+2026-11-06 14:06:17 +08 LOG:  checkpoint starting: time
+2026-11-06 14:06:17 +08 LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; total=0.018 s
+2026-11-06 15:22:06 +08 LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+2026-11-06 15:50:28 +08 LOG:  checkpoint starting: time
+2026-11-06 15:50:46 +08 LOG:  checkpoint complete: wrote 166 buffers (1.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; total=18.261 s
+2026-11-06 16:07:50 +08 FATAL:  password authentication failed for user "rors_app"
+2026-11-06 16:07:50 +08 DETAIL:  Role "rors_app" does not exist.
+
+==================================================
+D. DATABASE MAINTENANCE
+==================================================
+--- Check D.1: Execute Safe Maintenance Operation (ANALYZE) on menu_item ---
+ANALYZE
+--- Check D.2: Verify Table Statistics After ANALYZE ---
+ table_name | estimated_live_rows | estimated_dead_rows | last_vacuum | last_autovacuum |         last_analyze          | last_autoanalyze 
+------------+---------------------+---------------------+-------------+-----------------+-------------------------------+------------------
+ menu_item  |                   0 |                   0 |             |                 | 2026-11-06 16:14:19.607392+08 | 
+(1 row)
+
+==================================================
+E. QUERY EXECUTION PLAN
+==================================================
+--- Check E.1: Query Execution Plan (EXPLAIN ANALYZE, BUFFERS) ---
+                                                  QUERY PLAN                                                  
+--------------------------------------------------------------------------------------------------------------
+ Limit  (cost=0.00..0.00 rows=1 width=389) (actual time=0.009..0.009 rows=0.00 loops=1)
+   ->  Seq Scan on menu_item  (cost=0.00..0.00 rows=1 width=389) (actual time=0.007..0.007 rows=0.00 loops=1)
+ Planning:
+   Buffers: shared hit=16
+ Planning Time: 0.161 ms
+ Execution Time: 0.018 ms
+(6 rows)
+

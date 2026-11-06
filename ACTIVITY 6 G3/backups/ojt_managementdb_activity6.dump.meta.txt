@@ -1,0 +1,9 @@
+﻿Database: ojt_managementdb
+Timestamp: 2026-11-06 15:06:14
+Host: localhost:5432
+User: postgres
+Format: PostgreSQL Custom Archive (-Fc)
+Filename: ojt_managementdb_activity6.dump
+SizeBytes: 54842
+SHA256: 99c43342070fd84c75b9499c5103bc0b7948e52ffca2641abe48bb398d9514fb
+TOCCount: 142

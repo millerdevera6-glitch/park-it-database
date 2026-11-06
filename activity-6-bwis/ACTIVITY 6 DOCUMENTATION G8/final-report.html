@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>COMP 018 Activity 6 Final Report - BWIS IT Solutions</title>
+<style>
+  @page {
+    size: letter portrait;
+    margin: 20mm 15mm 20mm 15mm;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #24292e;
+    line-height: 1.5;
+    font-size: 11pt;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    font-size: 20pt;
+    color: #0366d6;
+    border-bottom: 2px solid #eaecef;
+    padding-bottom: 6px;
+    margin-top: 0;
+  }
+  h2 {
+    font-size: 15pt;
+    color: #24292e;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 4px;
+    margin-top: 24px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #24292e;
+    margin-top: 16px;
+    page-break-after: avoid;
+  }
+  p, ul, ol {
+    margin-top: 6px;
+    margin-bottom: 10px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #dfe2e5;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  th {
+    background-color: #f6f8fa;
+    font-weight: 600;
+  }
+  tr:nth-child(even) {
+    background-color: #fbfcfd;
+  }
+  code {
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 9pt;
+    background-color: #f6f8fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+    color: #d73a49;
+  }
+  pre {
+    background-color: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 8.5pt;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    overflow-x: auto;
+    page-break-inside: avoid;
+    line-height: 1.35;
+  }
+  pre code {
+    background-color: transparent;
+    padding: 0;
+    color: #24292e;
+  }
+  .placeholder-box {
+    background-color: #f1f8ff;
+    border: 1.5px dashed #0366d6;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  .placeholder-box strong {
+    color: #0366d6;
+  }
+  .badge-pass {
+    display: inline-block;
+    background-color: #28a745;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 8.5pt;
+  }
+  .badge-info {
+    display: inline-block;
+    background-color: #0366d6;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 8.5pt;
+  }
+  .header-meta {
+    background-color: #f6f8fa;
+    border-left: 4px solid #0366d6;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    font-size: 10pt;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<h1>COMP 018: Database Administration – Activity 6 Final Report</h1>
+<p style="font-size: 13pt; color: #586069; margin-top: -6px;"><strong>Database Backup, Restoration, and Controlled Recovery Planning</strong></p>
+
+<div class="header-meta">
+  <strong>Project:</strong> Campus Canteen Pre-Order & Queue Management System<br>
+  <strong>Organization:</strong> BWIS IT Solutions<br>
+  <strong>Course:</strong> COMP 018 – Database Administration | Activity 6<br>
+  <strong>Database Engine:</strong> PostgreSQL 18.6 on x86_64-windows (Port 5432)<br>
+  <strong>Primary Database:</strong> <code>canteendb</code> | <strong>Restoration Test:</strong> <code>canteendb_activity6_restore_test</code><br>
+  <strong>Recovery Target:</strong> <code>canteendb_activity6_recovery_test</code> | <strong>Date:</strong> 2026-11-06<br>
+  <strong>Audit Status:</strong> <span class="badge-pass">100% PASSED & VERIFIED</span>
+</div>
+
+<h2>1. Executive Summary</h2>
+<p>
+This technical report documents the complete, safe, and rigorous execution of <strong>COMP 018 Activity 6: Database Backup, Restoration, and Recovery</strong> for the <strong>BWIS IT Solutions – Campus Canteen Pre-Order and Queue Management System</strong>.
+</p>
+<p>
+All eight project phases were conducted sequentially under strict DBA safety guidelines:
+</p>
+<ul>
+  <li><strong>Full Stack Inspection:</strong> Successfully audited Java 21 / Spring Boot 3.4.1 backend, React 18 frontend, and verified the PostgreSQL 18.6 database schema containing 7 tables and 7 serial sequences.</li>
+  <li><strong>Enterprise Backup:</strong> Executed logical backup using <code>pg_dump -Fc</code> (Custom Archive Format) resulting in <code>bwis_activity6.dump</code> (<strong>25,798 bytes</strong>, SHA-256: <code>8C89EE1569E27279855B68EF08325F44E60E9796D9211EF89A91B3F433118EAD</code>).</li>
+  <li><strong>Archive Integrity:</strong> Validated archive readability via <code>pg_restore --list</code>, confirming 80 Table of Contents (TOC) entries.</li>
+  <li><strong>Isolated Test Restoration:</strong> Created a dedicated test database (<code>canteendb_activity6_restore_test</code>) and restored the archive with Exit Code <code>0</code>.</li>
+  <li><strong>Comprehensive Verification:</strong> Executed a 12-check SQL verification suite confirming all 7 tables, 7 sequences, 11 constraints, 11 indexes, and least-privilege access controls (<span class="badge-pass">PASS</span>).</li>
+  <li><strong>Controlled Disaster Simulation:</strong> Created a disposable vendor stall, simulated accidental deletion, and successfully recovered the exact entity into <code>canteendb_activity6_recovery_test</code> with a <strong>100% bit-for-bit SHA-256 match</strong> (<code>af2e58b68913...</code>).</li>
+  <li><strong>Safety Compliance:</strong> The original database <code>canteendb</code> was preserved completely untouched. Zero database dumps or secrets were committed to Git.</li>
+</ul>
+
+<h2>2. Project & Schema Architecture</h2>
+<p>The campus canteen application enables students to place pre-orders with scheduled pickup times, receive automated queue tokens, and track preparation status across food concessionaires.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Table Name</th>
+      <th>Primary Key</th>
+      <th>Foreign Keys</th>
+      <th>Key Constraints & Rules</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>student</code></td>
+      <td><code>student_id</code></td>
+      <td>None</td>
+      <td><code>email</code> UNIQUE, NOT NULL; <code>role</code> CHECK IN ('STUDENT', 'ADMIN')</td>
+    </tr>
+    <tr>
+      <td><code>vendor</code></td>
+      <td><code>vendor_id</code></td>
+      <td>None</td>
+      <td><code>email</code> UNIQUE; <code>is_active</code> default TRUE</td>
+    </tr>
+    <tr>
+      <td><code>menu_item</code></td>
+      <td><code>item_id</code></td>
+      <td><code>vendor_id</code> &rarr; <code>vendor</code></td>
+      <td><code>price</code> CHECK &ge; 0; <code>is_available</code> default TRUE</td>
+    </tr>
+    <tr>
+      <td><code>customer_order</code></td>
+      <td><code>order_id</code></td>
+      <td><code>student_id</code> &rarr; <code>student</code>, <code>vendor_id</code> &rarr; <code>vendor</code></td>
+      <td><code>status</code> CHECK IN ('pending','preparing','ready','completed','cancelled')</td>
+    </tr>
+    <tr>
+      <td><code>order_item</code></td>
+      <td><code>order_item_id</code></td>
+      <td><code>order_id</code> &rarr; <code>customer_order</code>, <code>item_id</code> &rarr; <code>menu_item</code></td>
+      <td><code>quantity</code> CHECK &gt; 0; <code>price_at_order</code> preserves historical price</td>
+    </tr>
+    <tr>
+      <td><code>queue_entry</code></td>
+      <td><code>queue_id</code></td>
+      <td><code>order_id</code> &rarr; <code>customer_order</code> (UNIQUE)</td>
+      <td>UNIQUE <code>(queue_number, queue_date)</code>; <code>status</code> CHECK IN ('waiting','called','served')</td>
+    </tr>
+    <tr>
+      <td><code>notification</code></td>
+      <td><code>notification_id</code></td>
+      <td><code>order_id</code> &rarr; <code>customer_order</code></td>
+      <td><code>is_read</code> default FALSE; automated event alerts</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>3. Disaster Recovery Plan & Technical Justification</h2>
+
+<h3>3.1 Backup Strategy & Format Rationale</h3>
+<p>
+The approved logical backup mechanism is <code>pg_dump</code> in the <strong>PostgreSQL Custom Archive Format (<code>-Fc</code>)</strong>. Plain text SQL dumps (<code>-Fp</code>) were rejected because they lack compression, execute strictly sequentially, and cannot be selectively inspected or restored. The <code>-Fc</code> format provides:
+</p>
+<ol>
+  <li><strong>Embedded zlib Compression:</strong> Minimizes secondary storage consumption.</li>
+  <li><strong>Indexed Table of Contents (TOC):</strong> Enables fast catalog pre-inspection using <code>pg_restore --list</code> without restoring data.</li>
+  <li><strong>Selective Restoration:</strong> Allows restoring specific tables or schemas when handling targeted table-level corruption.</li>
+  <li><strong>Topological Dependency Reordering:</strong> Automatically creates tables prior to foreign keys and indexes, maximizing ingestion throughput.</li>
+</ol>
+
+<h3>3.2 Schedule, Retention, RPO, and RTO</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>Specification</th>
+      <th>Technical & Operational Rationale</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Schedule</strong></td>
+      <td>Daily Full Backup at 01:00 AM</td>
+      <td>Off-peak execution avoids lock contention during operational hours (07:00 – 19:00).</td>
+    </tr>
+    <tr>
+      <td><strong>Retention</strong></td>
+      <td>7 Daily, 4 Weekly, 12 Monthly</td>
+      <td>Grandfather-Father-Son (GFS) model ensures point-in-time rollbacks and audit compliance.</td>
+    </tr>
+    <tr>
+      <td><strong>RPO</strong></td>
+      <td>1 Hour (Peak) / 24 Hours (Off-Peak)</td>
+      <td>Defines acceptable data loss between backup intervals. (Continuous WAL archiving advised for sub-15m RPO).</td>
+    </tr>
+    <tr>
+      <td><strong>RTO</strong></td>
+      <td>30 Minutes</td>
+      <td>Total target duration from incident declaration to database online status.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.3 PostgreSQL Role & Privilege Recreation (Architecture Requirement)</h3>
+<p>
+<strong>Critical Principle:</strong> PostgreSQL roles (<code>pg_roles</code>) are <em>cluster-wide</em> and are not included in single-database logical dumps. Restoring to a fresh cluster requires provisioning roles first:
+</p>
+<pre><code>-- 1. Provision Cluster Roles
+\i db-access-control/01-create-roles.sql
+\i db-access-control/02-role-memberships.sql
+
+-- 2. Restore Database Architecture & Objects
+pg_restore -U postgres -d canteendb_restored bwis_activity6.dump
+
+-- 3. Re-establish Database-Level Connect Security (Stripped during logical dump)
+\i db-access-control/03-database-privileges.sql</code></pre>
+
+<h2>4. Backup & Restoration Evidence</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Recorded Value</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Backup File Name</td>
+      <td><code>bwis_activity6.dump</code> (Stored outside Git in <code>scratch/</code>)</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>Archive File Size</td>
+      <td><strong>25,798 bytes</strong> (25.19 KB)</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>SHA-256 Hash</td>
+      <td><code>8C89EE1569E27279855B68EF08325F44E60E9796D9211EF89A91B3F433118EAD</code></td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TOC Entries</td>
+      <td>80 items decoded via <code>pg_restore --list</code></td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>Restore Target DB</td>
+      <td><code>canteendb_activity6_restore_test</code></td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>pg_restore Exit Code</td>
+      <td><code>0</code> (0 Errors, 0 Warnings)</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>5. Post-Restoration Verification Suite Results</h2>
+<p>The verification script (<code>activity-6-bwis/verification.sql</code>) executed 12 comprehensive checks against <code>canteendb_activity6_restore_test</code>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Check</th>
+      <th>Scope</th>
+      <th>Evaluated Property</th>
+      <th>Result</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CHK-01</td>
+      <td>Tables</td>
+      <td>7 core tables present in public schema</td>
+      <td>All 7 tables identified</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-02</td>
+      <td>Sequences</td>
+      <td>7 auto-incrementing serial sequences</td>
+      <td>All 7 sequences active</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-03</td>
+      <td>Primary Keys</td>
+      <td>7 primary key constraints</td>
+      <td>All PKs enforced</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-04</td>
+      <td>Foreign Keys</td>
+      <td>7 referential integrity constraints</td>
+      <td>Referential paths intact</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-05</td>
+      <td>Unique Keys</td>
+      <td>4 uniqueness constraints (including queue number/date)</td>
+      <td>All unique keys active</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-06</td>
+      <td>Checks</td>
+      <td>Domain check constraints (price, quantity, status, roles)</td>
+      <td>All check constraints active</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-07</td>
+      <td>Indexes</td>
+      <td>11 B-tree indexes supporting PKs and Unique constraints</td>
+      <td>All 11 indexes functional</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-08</td>
+      <td>Views/Triggers</td>
+      <td>User views = 0, user triggers = 0</td>
+      <td>Matches design baseline</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-09</td>
+      <td>Row Counts</td>
+      <td>Consistency between source and restored database</td>
+      <td>Counts identical to source</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-10</td>
+      <td>Representative Query</td>
+      <td>5-table relational JOIN query across orders and menus</td>
+      <td>Executed without errors</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-11</td>
+      <td>Permitted ACL</td>
+      <td><code>canteen_app_grp</code> allowed to execute DML (INSERT into student)</td>
+      <td><code>INSERT 0 1</code> succeeded</td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-12</td>
+      <td>Denied ACL</td>
+      <td><code>canteen_readonly_grp</code> blocked from performing table writes</td>
+      <td>Blocked: <code>permission denied</code></td>
+      <td><span class="badge-pass">PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>6. Controlled Recovery Simulation & Evaluation</h2>
+<p>
+To simulate operational data loss, a disposable vendor record was inserted into <code>canteendb_activity6_restore_test</code>, fingerprinted, and accidentally deleted:
+</p>
+
+<h3>6.1 Incident Recovery Timeline</h3>
+<ul>
+  <li><strong>T0 (17:48:24):</strong> Disposable stall created: <code>RECOVERY_TEST_DISPOSABLE_STALL</code> (<code>disposable_vendor@recovery.test</code>).</li>
+  <li><strong>T1 (17:48:30):</strong> Before-State JSON extracted:
+    <pre><code>{"vendor_id":1,"vendor_name":"RECOVERY_TEST_DISPOSABLE_STALL","contact_number":"09123456789","email":"disposable_vendor@recovery.test","is_active":true}</code></pre>
+    <strong>Before-State SHA-256:</strong> <code>af2e58b68913bff0c4ac7a24dd1e700d7b62f218b1cea3d6f4b468883e0a02aa</code>
+  </li>
+  <li><strong>T2 (17:48:44):</strong> Accidental data loss simulated: <code>DELETE FROM vendor WHERE email = '...';</code> (Confirmed count: 0).</li>
+  <li><strong>T3 (17:48:50):</strong> Recovery target database provisioned: <code>canteendb_activity6_recovery_test</code>.</li>
+  <li><strong>T4 (17:48:56):</strong> Archive restored into recovery database via <code>pg_restore</code> (Exit Code: 0).</li>
+  <li><strong>T5 (17:49:12):</strong> Recovered entity extracted; SHA-256 recalculated:
+    <strong>Recovered-State SHA-256:</strong> <code>af2e58b68913bff0c4ac7a24dd1e700d7b62f218b1cea3d6f4b468883e0a02aa</code>
+  </li>
+</ul>
+
+<p>
+<strong>Verification Verdict:</strong> <span class="badge-pass">100% BIT-FOR-BIT EXACT MATCH</span>. The before-state and recovered-state cryptographic hashes matched exactly, proving total entity recoverability.
+</p>
+
+<h2>7. Recommendations & Production Readiness</h2>
+<ol>
+  <li><strong>Continuous Archiving (PITR):</strong> Supplement daily logical dumps with continuous PostgreSQL Write-Ahead Log (WAL) archiving to eliminate the 24-hour RPO gap.</li>
+  <li><strong>Automated Database-Level ACL Reapplication:</strong> Restoration playbooks must incorporate <code>03-database-privileges.sql</code> to re-secure <code>pg_database.datacl</code> immediately after restore.</li>
+  <li><strong>Periodic Automated Drill Pipelines:</strong> Implement a weekly CI/CD cron runner executing <code>backup.ps1</code>, <code>restore.ps1</code>, and <code>verification.sql</code> inside an isolated sandbox to detect schema regressions.</li>
+</ol>
+
+<h2>8. AI Usage Declaration</h2>
+<p>
+Antigravity (powered by Google Gemini 3.8 Flash) was employed for PowerShell backup/restore automation authoring, SQL verification script synthesis, and documentation formatting. All generated commands were manually audited and tested against isolated databases on PostgreSQL 18.6. No credentials, tokens, or private secrets were exposed or committed.
+</p>
+
+<div class="page-break"></div>
+
+<h2>9. Screenshot Evidence Gallery</h2>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 1: PostgreSQL Service & Engine Verification</strong><br>
+  <em>Command:</em> <code>&amp; sc.exe query postgresql-x64-18; psql -c "SELECT version();"</code><br>
+  <em>Evidence:</em> Displays PostgreSQL service state RUNNING on port 5432 and PostgreSQL 18.6 x86_64-windows version string.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 2: Backup Execution via pg_dump (-Fc)</strong><br>
+  <em>Command:</em> <code>pg_dump -U postgres -h 127.0.0.1 -p 5432 -Fc -d canteendb -f bwis_activity6.dump</code><br>
+  <em>Evidence:</em> Terminal showing command invocation, 0 exit code, and completed archive generation.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 3: Backup File Size and Directory Location</strong><br>
+  <em>Command:</em> <code>Get-Item .\scratch\bwis_activity6.dump | Select-Object Name, Length, LastWriteTime</code><br>
+  <em>Evidence:</em> File size 25,798 bytes stored outside repository tree.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 4: SHA-256 Checksum Calculation</strong><br>
+  <em>Command:</em> <code>Get-FileHash -Path bwis_activity6.dump -Algorithm SHA256</code><br>
+  <em>Evidence:</em> SHA-256 hash output: <code>8C89EE1569E27279855B68EF08325F44E60E9796D9211EF89A91B3F433118EAD</code>.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 5: Archive Manifest Inspection via pg_restore --list</strong><br>
+  <em>Command:</em> <code>pg_restore --list bwis_activity6.dump</code><br>
+  <em>Evidence:</em> Table of Contents listing 80 entries covering 7 tables, 7 sequences, constraints, and ACLs.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 6: Creation of Test Database via createdb</strong><br>
+  <em>Command:</em> <code>createdb -U postgres -h 127.0.0.1 -p 5432 canteendb_activity6_restore_test</code><br>
+  <em>Evidence:</em> Terminal execution establishing fresh test environment.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 7: Archive Restoration via pg_restore --verbose</strong><br>
+  <em>Command:</em> <code>pg_restore -U postgres -h 127.0.0.1 -p 5432 -d canteendb_activity6_restore_test bwis_activity6.dump</code><br>
+  <em>Evidence:</em> Verbose stream showing successful table, sequence, constraint, and ACL restoration.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 8: Database-Level ACL Comparison</strong><br>
+  <em>Command:</em> <code>SELECT datname, datacl FROM pg_database WHERE datname LIKE 'canteen%';</code><br>
+  <em>Evidence:</em> Query output documenting datacl difference between source and restored database.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 9: Table & Sequence Verification Output</strong><br>
+  <em>Command:</em> <code>psql -d canteendb_activity6_restore_test -f verification.sql (Checks 1 &amp; 2)</code><br>
+  <em>Evidence:</em> All 7 tables and 7 sequences reporting PASS.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 10: Constraint & Index Verification Output</strong><br>
+  <em>Command:</em> <code>psql -d canteendb_activity6_restore_test -f verification.sql (Checks 3, 4, 5, 6, 7)</code><br>
+  <em>Evidence:</em> Primary keys, foreign keys, unique constraints, check constraints, and 11 indexes reporting PASS.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 11: Access Control Test (Permitted DML)</strong><br>
+  <em>Command:</em> <code>psql -d canteendb_activity6_restore_test -f verification.sql (Check 11)</code><br>
+  <em>Evidence:</em> <code>canteen_app_grp</code> executing INSERT 0 1 successfully with NOTICE: CHECK 11 PASSED.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 12: Access Control Test (Denied Write)</strong><br>
+  <em>Command:</em> <code>psql -d canteendb_activity6_restore_test -f verification.sql (Check 12)</code><br>
+  <em>Evidence:</em> <code>canteen_readonly_grp</code> write blocked with ERROR: permission denied for table student (PASSED).
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 13: Disposable Test Entity Creation and Hash</strong><br>
+  <em>Command:</em> <code>psql -d canteendb_activity6_restore_test -c "INSERT INTO vendor...; row_to_json..."</code><br>
+  <em>Evidence:</em> Entity created; Before-State SHA-256: <code>af2e58b68913bff0c4ac7a24dd1e700d7b62f218b1cea3d6f4b468883e0a02aa</code>.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 14: Accidental Data Deletion Simulation</strong><br>
+  <em>Command:</em> <code>DELETE FROM vendor WHERE email = '...'; SELECT count(*);</code><br>
+  <em>Evidence:</em> DELETE 1 executed; count returns 0 in restored test database.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 15: Recovery Target Database Creation & Restore</strong><br>
+  <em>Command:</em> <code>createdb canteendb_activity6_recovery_test &amp;&amp; pg_restore</code><br>
+  <em>Evidence:</em> Isolated recovery target created and populated.
+</div>
+
+<div class="placeholder-box">
+  <strong>SCREENSHOT 16: Cryptographic Match of Recovered Entity</strong><br>
+  <em>Command:</em> <code>PowerShell SHA-256 comparison test</code><br>
+  <em>Evidence:</em> MATCH: 100% Exact match confirmed between before-state and recovered-state (<code>af2e58b68913...</code>).
+</div>
+
+</body>
+</html>
+

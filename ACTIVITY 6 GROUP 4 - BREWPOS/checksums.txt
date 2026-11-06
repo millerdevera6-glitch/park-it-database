@@ -1,0 +1,43 @@
+﻿BrewPOS PostgreSQL Backup Verification
+======================================
+
+Project: BrewPOS
+Database: grp_brewposdb
+Backup Date: November 6, 2026
+
+Backup Filename:
+grp_brewposdb_2026-11-06.dump
+
+Backup Location:
+C:\DB_Backups\BrewPOS
+
+Backup Format:
+PostgreSQL Custom Format (-Fc)
+
+File Size:
+16,643 bytes
+
+SHA-256:
+1588AC4F1E654F9AEA23F0650E27486053B48C676EE77217F47505F97965CB9C
+
+Archive Inspection:
+Command: pg_restore --list
+Result: Successful
+TOC Entries: 55
+
+Backup Creation:
+Command: pg_dump -U postgres -d grp_brewposdb -F c -f "C:\DB_Backups\BrewPOS\grp_brewposdb_2026-11-06.dump"
+Result: Completed without reported errors.
+
+Restore Test:
+Database: grp_brewposdb_restore_test
+Result: Successful
+
+Recovery Simulation:
+Database: grp_brewposdb_recovery_test
+Result: Successful
+Recovered order-line record: order_id=1, item_id=5, quantity=2, sold_price=90.00
+
+Note:
+The backup archive is stored outside the Git repository.
+No database passwords or credentials are recorded in this file.
